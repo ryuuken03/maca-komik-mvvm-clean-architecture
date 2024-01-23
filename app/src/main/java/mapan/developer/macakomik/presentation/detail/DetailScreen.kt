@@ -1,5 +1,6 @@
 package mapan.developer.macakomik.presentation.detail
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -58,6 +60,7 @@ fun DetailScreen(
     navigateBack: () -> Unit,
     navigateToChapter: (String,String,String,String,String,Boolean) -> Unit,
 ) {
+    val context = LocalContext.current
     val isAdded by viewModel.isAddedBookmark.collectAsStateWithLifecycle()
     val isLoad =  remember { mutableStateOf(false) }
     Scaffold(
@@ -84,6 +87,7 @@ fun DetailScreen(
                     if(isLoad.value){
                         if (color != md_theme_light_primary) {
                             viewModel.addBookmark()
+                            Toast.makeText(context,"Komik Chapter ini Telah disimpan", Toast.LENGTH_SHORT).show()
                         }
                     }
                 },
