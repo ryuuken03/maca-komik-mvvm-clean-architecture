@@ -49,6 +49,7 @@ import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.datasource.local.db.entity.ComicSaveEntity
 import mapan.developer.macakomik.noRippleClickable
 import mapan.developer.macakomik.presentation.bookmarks.BookmarksViewModel
+import mapan.developer.macakomik.presentation.component.ContentScrollUpButton
 import mapan.developer.macakomik.presentation.component.dialog.AlertDialogConfirmation
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.presentation.component.ThumbnailSaveHistory
@@ -71,7 +72,6 @@ fun BookmarksContent (
 ) {
 
     val showDialog =  remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
     if(showDialog.value){
@@ -84,114 +84,78 @@ fun BookmarksContent (
             }
         )
     }
-    Box {
-        LazyColumn(
-            state = listState,
-            modifier = modifier
-                .fillMaxSize(),
-            content = {
-                item{
-                    InputTextSearch(
-                        search = viewModel.search,
-                        onClear = {
-                            viewModel.getList()
-                        },
-                        onSearch = { search ->
-                            viewModel.getSearchList(search)
-                        }
-                    )
-                }
-                if(list != null){
-                    if(list.size > 0){
-                        items(list.size) { index ->
-                            var data = list[index]
+    ContentScrollUpButton(
+        modifier = Modifier,
+        listState = listState,
+        content = {
+            LazyColumn(
+                state = listState,
+                modifier = modifier
+                    .fillMaxSize(),
+                content = {
+                    item{
+                        InputTextSearch(
+                            search = viewModel.search,
+                            onClear = {
+                                viewModel.getList()
+                            },
+                            onSearch = { search ->
+                                viewModel.getSearchList(search)
+                            }
+                        )
+                    }
+                    if(list != null){
+                        if(list.size > 0){
+                            items(list.size) { index ->
+                                var data = list[index]
 
-                            ThumbnailSaveHistory(
-                                modifier = modifier,
-                                save = data,
-                                history = null,
-                                onClick = {
-                                    if(data.urlChapter == null){
-                                        var urlDetailChange = URLEncoder.encode(data.urlDetail, "UTF-8")
-                                        var imageChange = "-"
-                                        if(data.imgSrc!=null){
-                                            imageChange = URLEncoder.encode(data.imgSrc, "UTF-8")
+                                ThumbnailSaveHistory(
+                                    modifier = modifier,
+                                    save = data,
+                                    history = null,
+                                    onClick = {
+                                        if(data.urlChapter == null){
+                                            var urlDetailChange = URLEncoder.encode(data.urlDetail, "UTF-8")
+                                            var imageChange = "-"
+                                            if(data.imgSrc!=null){
+                                                imageChange = URLEncoder.encode(data.imgSrc, "UTF-8")
+                                            }
+                                            navigateToDetail(imageChange,urlDetailChange)
+                                        }else{
+                                            var url = URLEncoder.encode(data.urlChapter!!, "UTF-8")
+                                            var urlDetailChange = URLEncoder.encode(data.urlDetail, "UTF-8")
+                                            var imageChange = "-"
+                                            if(data.imgSrc!=null){
+                                                imageChange = URLEncoder.encode(data.imgSrc, "UTF-8")
+                                            }
+                                            navigateToChapter(
+                                                data.title!!,
+                                                imageChange,
+                                                data.chapter!!,
+                                                url,
+                                                urlDetailChange
+                                            )
                                         }
-                                        navigateToDetail(imageChange,urlDetailChange)
-                                    }else{
-                                        var url = URLEncoder.encode(data.urlChapter!!, "UTF-8")
-                                        var urlDetailChange = URLEncoder.encode(data.urlDetail, "UTF-8")
-                                        var imageChange = "-"
-                                        if(data.imgSrc!=null){
-                                            imageChange = URLEncoder.encode(data.imgSrc, "UTF-8")
-                                        }
-                                        navigateToChapter(
-                                            data.title!!,
-                                            imageChange,
-                                            data.chapter!!,
-                                            url,
-                                            urlDetailChange
-                                        )
+                                    },
+                                    onDelete = {
+    //                                    viewModel.deleteId = data.id!!
+                                        viewModel.deleteUrl = data.urlDetail
+                                        showDialog.value = true
                                     }
-                                },
-                                onDelete = {
-//                                    viewModel.deleteId = data.id!!
-                                    viewModel.deleteUrl = data.urlDetail
-                                    showDialog.value = true
-                                }
-                            )
+                                )
+                            }
+                        }else{
+                            item{
+                                EmptyData(stringResource(R.string.text_data_not_found))
+                            }
                         }
                     }else{
                         item{
                             EmptyData(stringResource(R.string.text_data_not_found))
                         }
                     }
-                }else{
-                    item{
-                        EmptyData(stringResource(R.string.text_data_not_found))
-                    }
                 }
-            }
-        )
-        Column(
-            modifier = modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Bottom
-        ) {
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 10.dp, vertical = 30.dp)
-                    .fillMaxWidth()
-                    .noRippleClickable {
-                        coroutineScope.launch {
-                            listState.scrollToItem(index = 0)
-                        }
-                    },
-                horizontalArrangement = Arrangement.End
-            ){
-
-                Box(
-                    modifier = Modifier
-                        .width(50.dp)
-                        .height(50.dp)
-                        .background(
-                            color = md_theme_light_primary,
-                            shape = RoundedCornerShape(100),
-                        )
-                    ,
-                    contentAlignment = Alignment.Center
-                ){
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = "scrollUp",
-                        tint = GrayDarker,
-                        modifier = Modifier
-                            .width(40.dp)
-                            .height(40.dp)
-                            .padding(5.dp),
-                    )
-                }
-            }
+            )
         }
-    }
+    )
 }
