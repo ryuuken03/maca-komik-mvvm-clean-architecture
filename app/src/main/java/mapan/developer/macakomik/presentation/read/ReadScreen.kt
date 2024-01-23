@@ -98,7 +98,7 @@ fun ReadScreen(
                     if(!viewModel.currentPage.value.equals("-")){
                         if (color != md_theme_light_primary) {
                             viewModel.getDetail(false)
-                            Toast.makeText(context,"Komik Chapter ini Telah disimpan", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context,"Komik Chapter ini telah disimpan", Toast.LENGTH_SHORT).show()
                         }
                     }
                 },
