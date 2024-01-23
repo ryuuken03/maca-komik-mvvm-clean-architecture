@@ -1,8 +1,9 @@
 package mapan.developer.macakomik.presentation.read.section
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,20 +18,29 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -41,24 +51,19 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.ImageLoader
-import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
-import coil.compose.rememberAsyncImagePainter
-import coil.disk.DiskCache
-import coil.imageLoader
-import coil.memory.MemoryCache
-import coil.request.ImageRequest
-import coil.size.Size
-import coil.util.DebugLogger
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import kotlinx.coroutines.launch
@@ -66,13 +71,10 @@ import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.model.ComicChapterPageList
 import mapan.developer.macakomik.noRippleClickable
-import mapan.developer.macakomik.presentation.component.dialog.AlertDialogScrollToPage
 import mapan.developer.macakomik.presentation.read.ReadViewModel
 import mapan.developer.macakomik.ui.theme.GrayDarker
 import mapan.developer.macakomik.ui.theme.md_theme_light_primary
-import okhttp3.OkHttpClient
 import java.net.URLEncoder
-import java.util.concurrent.TimeUnit
 
 /***
  * Created By Mohammad Toriq on 03/01/2024
@@ -90,7 +92,7 @@ fun ReadContent(
     navigateToDetail: (String,String,Boolean) -> Unit,
     navigateBack: () -> Unit,
 ) {
-    val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val showInfo =  remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val nestedScrollConnection = remember {
@@ -113,19 +115,6 @@ fun ReadContent(
     val coroutineScope = rememberCoroutineScope()
     val currentPage by viewModel.currentPage.collectAsStateWithLifecycle()
     val maxPage by viewModel.maxPage.collectAsStateWithLifecycle()
-    if(showDialog.value){
-        AlertDialogScrollToPage(
-            currentPage = currentPage,
-            maxPage = maxPage,
-            showDialog = showDialog,
-            setAction = { page ->
-                coroutineScope.launch {
-                    listState.scrollToItem(index = page.toInt()-1)
-                    viewModel.setCurrentPageText(page)
-                }
-            }
-        )
-    }
 
     val isRefreshing =  remember { mutableStateOf(false) }
     SwipeRefresh(
@@ -209,9 +198,127 @@ fun ReadContent(
                     Column(
                         modifier = modifier
                             .fillMaxSize(),
-                        verticalArrangement = Arrangement.Bottom
+                        verticalArrangement = Arrangement.SpaceBetween
                     ) {
+                        if(showDialog.value){
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ){
+                                var text = ""
+                                if(!currentPage.equals("-")){
+                                    if(currentPage.toInt() > 1){
+                                        text = currentPage
+                                    }
+                                }
+                                var search by remember { mutableStateOf(TextFieldValue(text)) }
+                                val customTextSelectionColors = TextSelectionColors(
+                                    handleColor = Color.Gray,
+                                    backgroundColor = Color.LightGray
+                                )
+                                CompositionLocalProvider (
+                                    LocalTextSelectionColors provides customTextSelectionColors,
+                                ){
+                                    BasicTextField(
+                                        value = search,
+                                        onValueChange = { newText ->
+                                            try {
+                                                if(newText.text.toInt() > maxPage.toInt()){
+                                                    var max by mutableStateOf(TextFieldValue(maxPage))
+                                                    search = max
+                                                }else if(newText.text.toInt() < 1){
+                                                    var max by mutableStateOf(TextFieldValue(""))
+                                                    search = max
+                                                }else{
+                                                    search = newText
+                                                }
+                                            }catch (e:Exception){
+                                                var max by mutableStateOf(TextFieldValue(""))
+                                                search = max
+                                            }
+                                            if(search.text.length == 0){
+                                                showDialog.value = false
+                                            }
+                                        },
+                                        singleLine = true,
+                                        modifier = Modifier
+                                            .background(
+                                                color = Color.White,
+                                                shape = RoundedCornerShape(6.dp)
+                                            ),
+                                        keyboardOptions = KeyboardOptions(
+                                            keyboardType = KeyboardType.Number,
+                                            imeAction = ImeAction.Search
+                                        ),
+                                        keyboardActions = KeyboardActions(
+                                            onSearch = {
+                                                coroutineScope.launch {
+                                                    listState.scrollToItem(index = search.text.toInt()-1)
+                                                    viewModel.setCurrentPageText(search.text)
+                                                }
+                                                showDialog.value = false
+                                                keyboardController?.hide()
+                                            }
+                                        ),
+                                        decorationBox = { innerTextField ->
+                                            Box(
+                                                modifier = Modifier
+                                                    .width(130.dp)
+                                                    .border(
+                                                        width = 1.dp,
+                                                        color = Color.Black,
+                                                        shape = RoundedCornerShape(6.dp)
+                                                    )
 
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .width(130.dp)
+                                                        .padding(10.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                ) {
+                                                    Icon(
+                                                        modifier = Modifier,
+                                                        imageVector = Icons.Default.Search,
+                                                        contentDescription = "search",
+                                                        tint =  Color.Black
+                                                    )
+                                                    Box(modifier = Modifier
+                                                        .weight(1f)
+                                                        .padding(horizontal = 5.dp)){
+                                                        if(search.text.isEmpty()){
+                                                            Text(text = currentPage+"/"+maxPage,
+                                                                color = Color.Gray,
+                                                                fontSize = 14.sp,)
+                                                        }
+                                                        innerTextField()
+                                                    }
+                                                    if(search.text.length > 0){
+                                                        Icon(
+                                                            imageVector = Icons.Default.Close,
+                                                            contentDescription = "closeIcon",
+                                                            modifier = Modifier
+                                                                .clickable {
+                                                                    var reset by mutableStateOf(
+                                                                        TextFieldValue("")
+                                                                    )
+                                                                    search = reset
+                                                                    showDialog.value = false
+                                                                    keyboardController?.hide()
+                                                                },
+                                                            tint = Color.Black
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    )
+                                }
+                            }
+                        }else{
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
                         if(showInfo.value){
                             Column(
                                 modifier = Modifier
@@ -330,66 +437,64 @@ fun ReadContent(
                             }
                         }else{
                             Row(
-                                modifier =  Modifier
-                                    .padding(horizontal = 10.dp, vertical = 30.dp)
-                                    .fillMaxWidth()
-                                    .noRippleClickable {
-                                        coroutineScope.launch {
-                                            listState.scrollToItem(index = 0)
-                                        }
-                                    },
+                                modifier = Modifier
+                                    .padding(horizontal = 10.dp, vertical = 0.dp)
+                                    .fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
                             ){
-
-                                Box(
-                                    modifier = Modifier
-                                        .width(50.dp)
-                                        .height(50.dp)
-                                        .background(
-                                            color = md_theme_light_primary,
-                                            shape = RoundedCornerShape(100),
-                                        )
-                                    ,
-                                    contentAlignment = Alignment.Center
+                                Column(
+                                    modifier = Modifier,
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ){
-                                    Icon(
-                                        imageVector = Icons.Default.KeyboardArrowUp,
-                                        contentDescription = "scrollUp",
-                                        tint = GrayDarker,
+                                    Box(
+                                        modifier = Modifier
+                                            .width(50.dp)
+                                            .height(50.dp)
+                                            .background(
+                                                color = md_theme_light_primary,
+                                                shape = RoundedCornerShape(100),
+                                            )
+                                            .noRippleClickable {
+                                                coroutineScope.launch {
+                                                    listState.scrollToItem(index = 0)
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ){
+                                        Icon(
+                                            imageVector = Icons.Default.KeyboardArrowUp,
+                                            contentDescription = "scrollUp",
+                                            tint = GrayDarker,
+                                            modifier = Modifier
+                                                .width(40.dp)
+                                                .height(40.dp)
+                                                .padding(5.dp),
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Box(
                                         modifier = Modifier
                                             .width(40.dp)
                                             .height(40.dp)
-                                            .padding(5.dp),
-                                    )
-                                }
-                            }
-                            Row(
-                                modifier =  Modifier
-                                    .padding(horizontal = 15.dp, vertical = 0.dp)
-                                    .fillMaxWidth()
-                                    .noRippleClickable {
-                                        showInfo.value = true
-                                    },
-                                horizontalArrangement = Arrangement.End
-                            ){
-                                Box(
-                                    modifier = Modifier
-                                        .width(40.dp)
-                                        .height(40.dp)
-                                        .background(
-                                            color = md_theme_light_primary,
-                                            shape = RoundedCornerShape(4.dp),
+                                            .background(
+                                                color = md_theme_light_primary,
+                                                shape = RoundedCornerShape(4.dp),
+                                            )
+                                            .noRippleClickable {
+                                                showInfo.value = true
+                                            }
+                                        ,
+                                        contentAlignment = Alignment.Center
+                                    ){
+                                        Icon(
+                                            imageVector = Icons.Default.List,
+                                            contentDescription = "showInfo",
+                                            tint = GrayDarker,
+                                            modifier = Modifier.padding(5.dp)
                                         )
-                                    ,
-                                    contentAlignment = Alignment.Center
-                                ){
-                                    Icon(
-                                        imageVector = Icons.Default.List,
-                                        contentDescription = "showInfo",
-                                        tint = GrayDarker,
-                                        modifier = Modifier.padding(5.dp)
-                                    )
+                                    }
                                 }
+
                             }
                         }
                     }
