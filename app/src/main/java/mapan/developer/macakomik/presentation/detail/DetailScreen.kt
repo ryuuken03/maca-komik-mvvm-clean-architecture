@@ -87,7 +87,7 @@ fun DetailScreen(
                     if(isLoad.value){
                         if (color != md_theme_light_primary) {
                             viewModel.addBookmark()
-                            Toast.makeText(context,"Komik Chapter ini Telah disimpan", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context,"Komik ini telah disimpan", Toast.LENGTH_SHORT).show()
                         }
                     }
                 },
