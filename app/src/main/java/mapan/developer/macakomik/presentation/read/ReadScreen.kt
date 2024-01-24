@@ -59,11 +59,9 @@ fun ReadScreen(
     navigateBack: () -> Unit,
     navigateToDetail: (String,String,Boolean) -> Unit,
 ) {
-
     val context = LocalContext.current
     val isAdded by viewModel.isAddedBookmark.collectAsStateWithLifecycle()
     val isDetailAdded by viewModel.isDetailAddedBookmark.collectAsStateWithLifecycle()
-
     val title by viewModel.currentChapter.collectAsStateWithLifecycle()
     val cPage by viewModel.currentPage.collectAsStateWithLifecycle()
     val mPage by viewModel.maxPage.collectAsStateWithLifecycle()
