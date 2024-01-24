@@ -105,6 +105,7 @@ fun ReadContent(
     val showInfo =  remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val canZoom =  remember { mutableStateOf(false) }
+
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
