@@ -4,8 +4,13 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -17,12 +22,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -46,9 +53,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -87,7 +96,7 @@ fun ReadContent(
     image: String,
     urlDetail: String,
     fromDetail :Boolean,
-    showDialog: MutableState<Boolean>,
+    showSearch: MutableState<Boolean>,
     viewModel: ReadViewModel,
     navigateToDetail: (String,String,Boolean) -> Unit,
     navigateBack: () -> Unit,
@@ -95,10 +104,12 @@ fun ReadContent(
     val keyboardController = LocalSoftwareKeyboardController.current
     val showInfo =  remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val canZoom =  remember { mutableStateOf(false) }
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 showInfo.value = false
+                showSearch.value = false
                 return super.onPreScroll(available, source)
             }
 
@@ -130,6 +141,7 @@ fun ReadContent(
         Box{
             LazyColumn(
                 state = listState,
+                userScrollEnabled  = !canZoom.value,
                 modifier = modifier
                     .nestedScroll(nestedScrollConnection)
                     .fillMaxSize(),
@@ -143,7 +155,27 @@ fun ReadContent(
                             }else{
                                 items (count = data.list!!.size){ index ->
                                     var page = data.list!![index]
-                                    Box{
+                                    val scale = remember { mutableStateOf(1f) }
+                                    val offset = remember { mutableStateOf(Offset.Zero) }
+                                    BoxWithConstraints(
+                                        modifier = Modifier
+                                    ){
+                                        val state = rememberTransformableState{ zoomChange, panChange, rotation ->
+//                                            scale.value = (scale.value * zoomChange).coerceIn(1f,3f)
+                                            val eWidth = (scale.value - 1) * constraints.maxWidth
+                                            val eHeight = (scale.value - 1) * constraints.maxHeight
+
+                                            val maxX = eWidth / 2
+                                            val maxY = eHeight / 2
+                                            offset.value = Offset(
+                                                x = (offset.value.x +panChange.x).coerceIn(-maxX,maxX),
+                                                y = (offset.value.y +panChange.y).coerceIn(-maxY,maxY)
+                                            )
+                                        }
+                                        if(!canZoom.value){
+                                            scale.value = 1f
+                                            offset.value = Offset.Zero
+                                        }
                                         SubcomposeAsyncImage(
                                             model = page.imgSrc,
                                             contentDescription = null,
@@ -151,6 +183,38 @@ fun ReadContent(
                                             alignment = Alignment.Center,
                                             modifier = Modifier
                                                 .fillMaxWidth()
+                                                .graphicsLayer(
+                                                    // adding some zoom limits (min 50%, max 200%)
+//                                                    scaleX = maxOf(1f, minOf(3f, scale.value)),
+//                                                    scaleY = maxOf(1f, minOf(3f, scale.value)),
+                                                    scaleX = scale.value,
+                                                    scaleY = scale.value,
+                                                    translationX = offset.value.x,
+                                                    translationY = offset.value.y
+                                                )
+                                                .transformable(state, enabled = canZoom.value)
+                                                .combinedClickable(
+                                                    onClick = {
+//                                                        scale.value = 1f
+//                                                        offset.value = Offset.Zero
+//                                                        canZoom.value = false
+                                                    },
+                                                    onDoubleClick = {
+                                                        canZoom.value = !canZoom.value
+                                                        if(canZoom.value){
+                                                            scale.value = (scale.value * 2f)
+                                                            val eWidth = (scale.value - 1) * constraints.maxWidth
+                                                            val eHeight = (scale.value - 1) * constraints.maxHeight
+
+                                                            val maxX = eWidth / 2
+                                                            val maxY = eHeight / 2
+                                                            offset.value = Offset(
+                                                                x = (offset.value.x).coerceIn(-maxX,maxX),
+                                                                y = (offset.value.y).coerceIn(-maxY,maxY)
+                                                            )
+                                                        }
+                                                    }
+                                                )
                                         ) {
                                             val state = painter.state
                                             if (state is AsyncImagePainter.State.Loading) {
@@ -200,7 +264,7 @@ fun ReadContent(
                             .fillMaxSize(),
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
-                        if(showDialog.value){
+                        if(showSearch.value){
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.End
@@ -236,9 +300,6 @@ fun ReadContent(
                                                 var max by mutableStateOf(TextFieldValue(""))
                                                 search = max
                                             }
-                                            if(search.text.length == 0){
-                                                showDialog.value = false
-                                            }
                                         },
                                         singleLine = true,
                                         modifier = Modifier
@@ -256,7 +317,7 @@ fun ReadContent(
                                                     listState.scrollToItem(index = search.text.toInt()-1)
                                                     viewModel.setCurrentPageText(search.text)
                                                 }
-                                                showDialog.value = false
+                                                showSearch.value = false
                                                 keyboardController?.hide()
                                             }
                                         ),
@@ -304,7 +365,6 @@ fun ReadContent(
                                                                         TextFieldValue("")
                                                                     )
                                                                     search = reset
-                                                                    showDialog.value = false
                                                                     keyboardController?.hide()
                                                                 },
                                                             tint = Color.Black

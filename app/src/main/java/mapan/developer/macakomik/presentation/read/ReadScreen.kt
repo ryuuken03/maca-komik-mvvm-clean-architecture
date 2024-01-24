@@ -68,7 +68,7 @@ fun ReadScreen(
     val cPage by viewModel.currentPage.collectAsStateWithLifecycle()
     val mPage by viewModel.maxPage.collectAsStateWithLifecycle()
 
-    val showDialog =  remember { mutableStateOf(false) }
+    val showSearch =  remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
             var icon =
@@ -106,7 +106,7 @@ fun ReadScreen(
                 textPageFontSize = 14.sp,
                 onClickPage = {
                     if(!viewModel.currentPage.value.equals("-")){
-                        showDialog.value = true
+                        showSearch.value = true
                     }
                 },
                 navigateBack = navigateBack,
@@ -143,7 +143,7 @@ fun ReadScreen(
                                     image = image,
                                     urlDetail = urlDetail,
                                     fromDetail = fromDetail,
-                                    showDialog = showDialog,
+                                    showSearch = showSearch,
                                     viewModel = viewModel,
                                     navigateToDetail = navigateToDetail,
                                     navigateBack = navigateBack,

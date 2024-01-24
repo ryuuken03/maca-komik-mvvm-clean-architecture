@@ -49,17 +49,7 @@ fun ContentScrollUpButton(
             Row(
                 modifier = Modifier
                     .padding(horizontal = 10.dp, vertical = 30.dp)
-                    .fillMaxWidth()
-                    .noRippleClickable {
-                        coroutineScope.launch {
-                            if(listGridState!=null){
-                                listGridState.scrollToItem(index = 0)
-                            }
-                            if(listState!=null){
-                                listState.scrollToItem(index = 0)
-                            }
-                        }
-                    },
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
 
@@ -70,7 +60,17 @@ fun ContentScrollUpButton(
                         .background(
                             color = md_theme_light_primary,
                             shape = RoundedCornerShape(100),
-                        ),
+                        )
+                        .noRippleClickable {
+                            coroutineScope.launch {
+                                if(listGridState!=null){
+                                    listGridState.scrollToItem(index = 0)
+                                }
+                                if(listState!=null){
+                                    listState.scrollToItem(index = 0)
+                                }
+                            }
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
