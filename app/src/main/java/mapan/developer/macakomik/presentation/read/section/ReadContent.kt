@@ -1,6 +1,7 @@
 package mapan.developer.macakomik.presentation.read.section
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,7 +18,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -35,11 +38,13 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +64,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -71,12 +77,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.model.ComicChapterPageList
+import mapan.developer.macakomik.presentation.component.ProgressLoading
 import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.component.noRippleCombileClickable
 import mapan.developer.macakomik.presentation.read.ReadViewModel
@@ -159,6 +169,7 @@ fun ReadContent(
                                     val offset = remember { mutableStateOf(Offset.Zero) }
                                     BoxWithConstraints(
                                         modifier = Modifier
+                                            .fillMaxWidth()
                                     ){
                                         val state = rememberTransformableState{ zoomChange, panChange, rotation ->
                                             val eWidth = (scale.value - 1) * constraints.maxWidth
@@ -193,28 +204,51 @@ fun ReadContent(
                                                     onClick = {},
                                                     onDoubleClick = {
                                                         canZoom.value = !canZoom.value
-                                                        if(canZoom.value){
+                                                        if (canZoom.value) {
                                                             scale.value = (scale.value * 2f)
-                                                            val eWidth = (scale.value - 1) * constraints.maxWidth
-                                                            val eHeight = (scale.value - 1) * constraints.maxHeight
+                                                            val eWidth =
+                                                                (scale.value - 1) * constraints.maxWidth
+                                                            val eHeight =
+                                                                (scale.value - 1) * constraints.maxHeight
 
                                                             val maxX = eWidth / 2
                                                             val maxY = eHeight / 2
                                                             offset.value = Offset(
-                                                                x = (offset.value.x).coerceIn(-maxX,maxX),
-                                                                y = (offset.value.y).coerceIn(-maxY,maxY)
+                                                                x = (offset.value.x).coerceIn(
+                                                                    -maxX,
+                                                                    maxX
+                                                                ),
+                                                                y = (offset.value.y).coerceIn(
+                                                                    -maxY,
+                                                                    maxY
+                                                                )
                                                             )
                                                         }
                                                     }
                                                 )
-                                        ) {
+                                        )
+                                        {
                                             val state = painter.state
                                             if (state is AsyncImagePainter.State.Loading) {
-                                                LinearProgressIndicator(
+                                                CircularProgressIndicator(
                                                     modifier = Modifier
-                                                        .padding(10.dp)
+                                                        .fillMaxWidth()
+                                                        .padding(5.dp)
+                                                        .wrapContentWidth(Alignment.CenterHorizontally))
+                                            }else if (state is AsyncImagePainter.State.Error) {
+                                                Icon(
+                                                    painter = painterResource(
+                                                        id = R.drawable.baseline_hide_image_24),
+                                                    contentDescription = null,
+                                                    tint = Color.White)
+                                            }else if (state is AsyncImagePainter.State.Empty) {
+                                                Icon(
+                                                    painter = painterResource(
+                                                        id = R.drawable.baseline_hide_image_24),
+                                                    contentDescription = null,
+                                                    tint = Color.Gray
                                                 )
-                                            }else {
+                                            }else{
                                                 SubcomposeAsyncImageContent()
                                             }
                                         }
