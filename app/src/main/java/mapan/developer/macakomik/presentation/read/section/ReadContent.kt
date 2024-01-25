@@ -192,11 +192,8 @@ fun ReadContent(
                                                     translationY = offset.value.y
                                                 )
                                                 .transformable(state, enabled = canZoom.value)
-                                                .combinedClickable(
-                                                    indication = null,
-                                                    interactionSource = remember { MutableInteractionSource() },
-                                                    onClick = {
-                                                    },
+                                                .noRippleCombileClickable(
+                                                    onClick = {},
                                                     onDoubleClick = {
                                                         canZoom.value = !canZoom.value
                                                         if(canZoom.value){
