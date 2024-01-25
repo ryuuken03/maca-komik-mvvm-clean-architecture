@@ -38,7 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.UiState
-import mapan.developer.macakomik.noRippleClickable
+import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.presentation.component.ProgressLoading
 import mapan.developer.macakomik.presentation.component.toolbar.ToolbarDetailRead

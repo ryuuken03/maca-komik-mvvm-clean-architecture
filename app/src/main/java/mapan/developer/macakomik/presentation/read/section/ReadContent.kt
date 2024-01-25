@@ -8,6 +8,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -79,7 +80,8 @@ import kotlinx.coroutines.launch
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.model.ComicChapterPageList
-import mapan.developer.macakomik.noRippleClickable
+import mapan.developer.macakomik.presentation.component.noRippleClickable
+import mapan.developer.macakomik.presentation.component.noRippleCombileClickable
 import mapan.developer.macakomik.presentation.read.ReadViewModel
 import mapan.developer.macakomik.ui.theme.GrayDarker
 import mapan.developer.macakomik.ui.theme.md_theme_light_primary
@@ -162,7 +164,6 @@ fun ReadContent(
                                         modifier = Modifier
                                     ){
                                         val state = rememberTransformableState{ zoomChange, panChange, rotation ->
-//                                            scale.value = (scale.value * zoomChange).coerceIn(1f,3f)
                                             val eWidth = (scale.value - 1) * constraints.maxWidth
                                             val eHeight = (scale.value - 1) * constraints.maxHeight
 
@@ -185,9 +186,6 @@ fun ReadContent(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .graphicsLayer(
-                                                    // adding some zoom limits (min 50%, max 200%)
-//                                                    scaleX = maxOf(1f, minOf(3f, scale.value)),
-//                                                    scaleY = maxOf(1f, minOf(3f, scale.value)),
                                                     scaleX = scale.value,
                                                     scaleY = scale.value,
                                                     translationX = offset.value.x,
@@ -195,10 +193,9 @@ fun ReadContent(
                                                 )
                                                 .transformable(state, enabled = canZoom.value)
                                                 .combinedClickable(
+                                                    indication = null,
+                                                    interactionSource = remember { MutableInteractionSource() },
                                                     onClick = {
-//                                                        scale.value = 1f
-//                                                        offset.value = Offset.Zero
-//                                                        canZoom.value = false
                                                     },
                                                     onDoubleClick = {
                                                         canZoom.value = !canZoom.value

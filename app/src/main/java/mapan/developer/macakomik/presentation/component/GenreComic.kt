@@ -13,10 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import mapan.developer.macakomik.data.model.ComicFilter
-import mapan.developer.macakomik.data.model.ComicThumbnail
-import mapan.developer.macakomik.noRippleClickable
 import mapan.developer.macakomik.ui.theme.md_theme_light_primary
-import java.net.URLEncoder
 
 /***
  * Created By Mohammad Toriq on 16/01/2024

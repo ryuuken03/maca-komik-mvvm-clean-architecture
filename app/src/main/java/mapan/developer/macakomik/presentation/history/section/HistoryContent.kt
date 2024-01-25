@@ -34,7 +34,7 @@ import mapan.developer.macakomik.data.datasource.local.db.entity.ComicHistoryEnt
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.presentation.history.HistoryViewModel
 import mapan.developer.macakomik.R
-import mapan.developer.macakomik.noRippleClickable
+import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.component.ContentScrollUpButton
 import mapan.developer.macakomik.presentation.component.ThumbnailSaveHistory
 import mapan.developer.macakomik.presentation.component.inputtextfield.InputTextSearch

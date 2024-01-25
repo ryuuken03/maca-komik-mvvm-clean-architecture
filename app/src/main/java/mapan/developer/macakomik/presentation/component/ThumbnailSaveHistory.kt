@@ -31,7 +31,7 @@ import coil.compose.AsyncImage
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.datasource.local.db.entity.ComicHistoryEntity
 import mapan.developer.macakomik.data.datasource.local.db.entity.ComicSaveEntity
-import mapan.developer.macakomik.noRippleClickable
+import mapan.developer.macakomik.presentation.component.noRippleClickable
 
 /***
  * Created By Mohammad Toriq on 13/01/2024

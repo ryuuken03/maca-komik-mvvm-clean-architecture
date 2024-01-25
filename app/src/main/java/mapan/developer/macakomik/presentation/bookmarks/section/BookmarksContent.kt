@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.datasource.local.db.entity.ComicSaveEntity
-import mapan.developer.macakomik.noRippleClickable
+import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.bookmarks.BookmarksViewModel
 import mapan.developer.macakomik.presentation.component.ContentScrollUpButton
 import mapan.developer.macakomik.presentation.component.dialog.AlertDialogConfirmation

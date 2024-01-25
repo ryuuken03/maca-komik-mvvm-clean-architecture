@@ -48,25 +48,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import kotlinx.coroutines.launch
-import mapan.developer.macakomik.OnBottomReached
+import mapan.developer.macakomik.presentation.component.OnBottomReached
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.model.ComicList
-import mapan.developer.macakomik.noRippleClickable
 import mapan.developer.macakomik.presentation.component.ContentScrollUpButton
 import mapan.developer.macakomik.presentation.component.ThumbnailComic
 import mapan.developer.macakomik.presentation.list.ListViewModel
-import mapan.developer.macakomik.ui.theme.GrayDarker
-import mapan.developer.macakomik.ui.theme.md_theme_light_primary
 import java.net.URLEncoder
 
 /***

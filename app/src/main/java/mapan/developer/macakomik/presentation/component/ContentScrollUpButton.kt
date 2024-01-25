@@ -24,7 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import mapan.developer.macakomik.noRippleClickable
+import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.ui.theme.GrayDarker
 import mapan.developer.macakomik.ui.theme.md_theme_light_primary
 

@@ -36,19 +36,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.model.ComicDetail
-import mapan.developer.macakomik.noRippleClickable
+import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.presentation.detail.DetailViewModel
 import mapan.developer.macakomik.ui.theme.Gray200
 import mapan.developer.macakomik.ui.theme.Gray200Transparant
-import mapan.developer.macakomik.ui.theme.GrayDarker
 import java.net.URLEncoder
 
 /***
