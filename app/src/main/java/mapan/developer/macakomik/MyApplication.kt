@@ -34,7 +34,7 @@ class MyApplication : Application(), ImageLoaderFactory{
                     .directory(cacheDir)
                     .build()
             }
-            .logger(DebugLogger())
+//            .logger(DebugLogger())
             .build()
     }
 }
