@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     kotlin("kapt")
     id("dagger.hilt.android.plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -95,6 +96,8 @@ dependencies {
 
     implementation(Coil.coil)
     implementation(Jsoup.jsoup)
+    implementation(platform(Firebase.firebaseBom))
+    implementation(Firebase.firestore)
 }
 // Allow references to generated code
 kapt {
