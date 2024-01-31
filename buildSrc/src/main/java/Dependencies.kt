@@ -34,6 +34,7 @@ object Version{
     const val systemUiController = "0.33.2-alpha"
 
     const val jsoup = "1.17.2"
+    const val firebase = "32.7.1"
 }
 
 object Deps{
@@ -105,4 +106,8 @@ object GoogleAccompanist{
 }
 object Jsoup{
     const val jsoup = "org.jsoup:jsoup:${Version.jsoup}"
+}
+object Firebase{
+    const val firebaseBom = "com.google.firebase:firebase-bom:${Version.firebase}"
+    const val firestore = "com.google.firebase:firebase-firestore"
 }
