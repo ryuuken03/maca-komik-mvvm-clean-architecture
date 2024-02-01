@@ -107,7 +107,7 @@ object GoogleAccompanist{
 object Jsoup{
     const val jsoup = "org.jsoup:jsoup:${Version.jsoup}"
 }
-object Firebase{
+object FirebaseDEP{
     const val firebaseBom = "com.google.firebase:firebase-bom:${Version.firebase}"
     const val firestore = "com.google.firebase:firebase-firestore"
 }
