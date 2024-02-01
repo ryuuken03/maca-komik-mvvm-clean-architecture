@@ -96,8 +96,8 @@ dependencies {
 
     implementation(Coil.coil)
     implementation(Jsoup.jsoup)
-    implementation(platform(Firebase.firebaseBom))
-    implementation(Firebase.firestore)
+    implementation(platform(FirebaseDEP.firebaseBom))
+    implementation(FirebaseDEP.firestore)
 }
 // Allow references to generated code
 kapt {
