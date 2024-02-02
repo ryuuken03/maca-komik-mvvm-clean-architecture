@@ -48,6 +48,7 @@ fun MainScreen(
         BottomBarScreen.Home,
         BottomBarScreen.History,
         BottomBarScreen.Bookmarks,
+        BottomBarScreen.Setting,
     )
 
     BottomNav(
