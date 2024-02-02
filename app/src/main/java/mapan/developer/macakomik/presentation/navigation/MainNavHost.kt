@@ -17,6 +17,7 @@ import mapan.developer.macakomik.presentation.list.ListScreen
 import mapan.developer.macakomik.presentation.navigation.screen.BottomBarScreen
 import mapan.developer.macakomik.presentation.navigation.screen.GeneralScreen
 import mapan.developer.macakomik.presentation.read.ReadScreen
+import mapan.developer.macakomik.presentation.setting.SettingScreen
 
 /***
  * Created By Mohammad Toriq on 03/01/2024
@@ -61,6 +62,10 @@ fun MainNavHost(
                 },
             )
         }
+        composable(BottomBarScreen.Setting.route) {
+            SettingScreen()
+        }
+
         composable(
             route = GeneralScreen.DetailScreen.route,
         ) {
