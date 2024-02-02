@@ -16,5 +16,11 @@ import mapan.developer.macakomik.data.datasource.local.db.entity.ComicSaveEntity
 )
 
 abstract class AppDatabase : RoomDatabase() {
+    companion object {
+        const val DB_NAME = "m_maca.db"
+        const val DB_BACKUP_SUFFIX = "-bkp"
+        const val SQLITE_WALFILE_SUFFIX = "-wal"
+        const val SQLITE_SHMFILE_SUFFIX = "-shm"
+    }
     abstract fun appDao(): AppDao
 }
