@@ -25,4 +25,11 @@ sealed class BottomBarScreen(val route: String) {
         icon = R.drawable.baseline_bookmarks_24,
         iconFocused = R.drawable.baseline_bookmarks_24
     )
+
+    object Setting : BottomBar(
+        route = "setting",
+        titleResId = R.string.menu_setting,
+        icon = R.drawable.baseline_settings_24,
+        iconFocused = R.drawable.baseline_settings_24
+    )
 }
