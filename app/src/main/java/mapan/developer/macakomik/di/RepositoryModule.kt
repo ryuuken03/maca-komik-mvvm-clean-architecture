@@ -39,7 +39,9 @@ object RepositoryModule {
 
     @Provides
     @Singleton
-    fun provideDatabaseRepository(appDatabase: AppDatabase, sf : SharedPreferences): DatabaseRepository {
-        return DatabaseRepositoryImpl(appDatabase,sf)
+    fun provideDatabaseRepository(@ApplicationContext appContext: Context,
+                                  appDatabase: AppDatabase,
+                                  sf : SharedPreferences): DatabaseRepository {
+        return DatabaseRepositoryImpl(appContext,appDatabase,sf)
     }
 }
