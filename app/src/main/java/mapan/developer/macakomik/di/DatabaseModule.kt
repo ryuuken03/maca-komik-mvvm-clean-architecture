@@ -3,6 +3,8 @@ package mapan.developer.macakomik.di
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.room.Room
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -23,7 +25,7 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(context, AppDatabase::class.java, "m_maca.db")
+        return Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DB_NAME)
             .build()
     }
 
@@ -38,4 +40,8 @@ object DatabaseModule {
     fun provideSharePrefereces(@ApplicationContext context: Context) : SharedPreferences {
         return AppSharePreference().getSharePreferences(context)
     }
+
+    @Provides
+    @Singleton
+    fun providesFirebaseFirestore() = Firebase.firestore
 }
