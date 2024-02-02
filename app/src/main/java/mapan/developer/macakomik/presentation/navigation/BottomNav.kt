@@ -30,6 +30,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.navigation.screen.BottomBar
 import mapan.developer.macakomik.presentation.navigation.screen.BottomBarScreen
 import mapan.developer.macakomik.ui.theme.GrayDarker
@@ -51,7 +52,8 @@ fun BottomNav(
         bottomBar = {
             if (currentDestination?.route == BottomBarScreen.Home.route ||
                 currentDestination?.route == BottomBarScreen.History.route ||
-                currentDestination?.route == BottomBarScreen.Bookmarks.route
+                currentDestination?.route == BottomBarScreen.Bookmarks.route ||
+                currentDestination?.route == BottomBarScreen.Setting.route
             ) {
                 BottomBar(
                     modifier = modifier,
@@ -101,7 +103,7 @@ fun BottomNavItem(
     navController: NavHostController
 ) {
     val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
-    val background = if (selected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f) else Color.Transparent
+    val background = Color.Transparent
     val contentColor = if (selected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(alpha = 0.4f)
 
     Box(
@@ -109,10 +111,12 @@ fun BottomNavItem(
             .height(42.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(background)
-            .clickable(onClick = {
-                navController.navigate(screen.route) {
-                    popUpTo(navController.graph.findStartDestination().id)
-                    launchSingleTop = true
+            .noRippleClickable (onClick = {
+                if(!selected){
+                    navController.navigate(screen.route) {
+                        popUpTo(navController.graph.findStartDestination().id)
+                        launchSingleTop = true
+                    }
                 }
             })
     ) {
