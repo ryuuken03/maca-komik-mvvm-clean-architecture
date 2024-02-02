@@ -34,16 +34,22 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel(){
     private val _uiState: MutableStateFlow<UiState<ComicHome>> = MutableStateFlow(UiState.Loading())
     val uiState: StateFlow<UiState<ComicHome>> = _uiState
+
     private val _uiGenreState: MutableStateFlow<UiState<ArrayList<ComicFilter>>> = MutableStateFlow(UiState.Loading())
     val uiGenreState: StateFlow<UiState<ArrayList<ComicFilter>>> = _uiGenreState
+
     var sources = mContext.resources.getStringArray(R.array.source_website_url)
     var sourceTitles = mContext.resources.getStringArray(R.array.source_website_title)
+
     var index = 0
     var url = sources[index]
     var appName = mContext.resources.getString(R.string.app_name2)
 
     private val _title = MutableStateFlow("")
     val title = _title.asStateFlow()
+
+    private val _canBrowse = MutableStateFlow(true)
+    val canBrowse = _canBrowse.asStateFlow()
 
     init {
         getSource()
@@ -61,39 +67,47 @@ class HomeViewModel @Inject constructor(
         return icon
     }
     fun setIndexSource(ind:Int){
-        index = ind
-        url = sources[index]
-        _title.value = appName+" "+sourceTitles[index]
-        setLoading()
-        addSource()
+        if(canBrowse.value){
+            index = ind
+            url = sources[index]
+            _title.value = appName+" "+sourceTitles[index]
+            setLoading()
+            addSource()
+        }
     }
     fun setLoading(){
         _uiState.value = UiState.Loading()
     }
 
     fun getBrowse(){
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                getGenre.execute(getGenreUrl())
-                    .catch {
-                        _uiGenreState.value = UiState.Error(it.message.toString())
-                    }
-                    .collect { list ->
-                        _uiGenreState.value = UiState.Success(list)
-                    }
-            } catch (e: Exception) {
-                _uiGenreState.value = UiState.Error(e.message.toString())
-            }
-            try {
-                getHome.execute(url)
-                    .catch {
-                        _uiState.value = UiState.Error(it.message.toString())
-                    }
-                    .collect { comicHome ->
-                        _uiState.value = UiState.Success(comicHome)
-                    }
-            } catch (e: Exception) {
-                _uiState.value = UiState.Error(e.message.toString())
+        if(canBrowse.value){
+            _canBrowse.value = false
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    getGenre.execute(getGenreUrl())
+                        .catch {
+                            _uiGenreState.value = UiState.Error(it.message.toString())
+                        }
+                        .collect { list ->
+                            _uiGenreState.value = UiState.Success(list)
+                        }
+                } catch (e: Exception) {
+                    _uiGenreState.value = UiState.Error(e.message.toString())
+                }
+                try {
+                    getHome.execute(url)
+                        .catch {
+                            _canBrowse.value = true
+                            _uiState.value = UiState.Error(it.message.toString())
+                        }
+                        .collect { comicHome ->
+                            _canBrowse.value = true
+                            _uiState.value = UiState.Success(comicHome)
+                        }
+                } catch (e: Exception) {
+                    _canBrowse.value = true
+                    _uiState.value = UiState.Error(e.message.toString())
+                }
             }
         }
     }
