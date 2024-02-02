@@ -21,4 +21,6 @@ interface DatabaseRepository {
     suspend fun deleteAllComicHistory()
     suspend fun updateSource(index: Int)
     suspend fun getSource() : Flow<Int>
+    suspend fun backupDataDB(): Flow<Int>
+    suspend fun restoreDataDB(restart:Boolean) : Flow<Int>
 }
