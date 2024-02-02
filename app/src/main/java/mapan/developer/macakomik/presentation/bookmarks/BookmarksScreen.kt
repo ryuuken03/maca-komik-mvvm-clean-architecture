@@ -42,7 +42,7 @@ fun BookmarksScreen (
     Scaffold(
         topBar ={
             ToolbarCenter(
-                title = "Daftar ditandai",
+                title = "Daftar Ditandai",
                 fontSize = 16.sp
             )
         },
