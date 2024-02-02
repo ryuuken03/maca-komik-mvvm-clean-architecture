@@ -51,7 +51,8 @@ fun HomeScreen(
                 if(canBrowse){
                     viewModel.setIndexSource(index)
                 }else{
-                    Toast.makeText(context,"Tunggu Sebentar...",Toast.LENGTH_SHORT).show()
+                    var message = context.getString(R.string.text_please_waiting)
+                    Toast.makeText(context, message,Toast.LENGTH_SHORT).show()
                 }
             }
         )
