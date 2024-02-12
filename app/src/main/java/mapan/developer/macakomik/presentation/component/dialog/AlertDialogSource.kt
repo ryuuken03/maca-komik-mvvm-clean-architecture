@@ -90,65 +90,73 @@ fun AlertDialogSource(
 
                     Spacer(modifier = Modifier.height(20.dp))
                     for(i in 0 .. sourceTitles.size-1){
-                        var icon = R.drawable.ic_src_komikcast
-                        when(i){
-                            0 -> { icon = R.drawable.ic_src_komikcast}
-                            1 -> { icon = R.drawable.ic_src_westmanga}
-                            2 -> { icon = R.drawable.ic_src_ngomik}
-                            3 -> { icon = R.drawable.ic_src_shinigami}
-                        }
-                        OutlinedButton(
-                            modifier = Modifier
-                                .padding(all = 5.dp),
-                            interactionSource = remember { NoRippleInteractionSource() },
-                            contentPadding = PaddingValues(),
-                            border = BorderStroke(1.dp, GrayDarker),
-                            shape = RoundedCornerShape(4),
-                            onClick = {
-                                setAction(i)
-                                index.value = i
-                                showDialog.value = false
+//                        if(index.value != i){
+                            var icon = R.drawable.ic_src_komikcast
+                            when(i){
+                                0 -> { icon = R.drawable.ic_src_komikcast}
+                                1 -> { icon = R.drawable.ic_src_westmanga}
+                                2 -> { icon = R.drawable.ic_src_ngomik}
+                                3 -> { icon = R.drawable.ic_src_shinigami}
                             }
-                        ){
-                            Row (
+                            OutlinedButton(
                                 modifier = Modifier
-                                    .padding(5.dp)
-                                    .fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceAround
-                            ){
-                                Image(
-                                    modifier = Modifier
-                                        .weight(1f,true)
-                                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                                        .width(25.dp)
-                                        .height(25.dp),
-                                    painter = painterResource(icon),
-                                    contentDescription = "web",
-                                    alignment = Alignment.CenterStart
-                                )
-                                Text(
-                                    modifier = Modifier
-                                        .weight(2f,true),
-                                    text = sourceTitles[i],
-                                    color = GrayDarker,
-                                    textAlign = TextAlign.Start
-                                )
-                                RadioButton(
-                                    modifier = Modifier
-                                        .weight(1f,true),
-                                    selected = if(index.value == i) true else false,
-                                    colors = RadioButtonDefaults.colors(
-                                        selectedColor = GrayDarker,
-                                        unselectedColor = Color.Gray,
-                                    ),
-                                    onClick = {
+                                    .padding(all = 5.dp),
+                                interactionSource = remember { NoRippleInteractionSource() },
+                                contentPadding = PaddingValues(),
+                                border = BorderStroke(1.dp, GrayDarker),
+                                shape = RoundedCornerShape(4),
+                                onClick = {
+                                    if(index.value == i){
+                                    }else{
                                         setAction(i)
                                         index.value = i
                                         showDialog.value = false
-                                    },
-                                )
-                            }
+                                    }
+                                }
+                            ){
+                                Row (
+                                    modifier = Modifier
+                                        .padding(5.dp)
+                                        .fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceAround
+                                ){
+                                    Image(
+                                        modifier = Modifier
+                                            .weight(1f,true)
+                                            .padding(horizontal = 10.dp, vertical = 5.dp)
+                                            .width(25.dp)
+                                            .height(25.dp),
+                                        painter = painterResource(icon),
+                                        contentDescription = "web",
+                                        alignment = Alignment.CenterStart
+                                    )
+                                    Text(
+                                        modifier = Modifier
+                                            .weight(2f,true),
+                                        text = sourceTitles[i],
+                                        color = GrayDarker,
+                                        textAlign = TextAlign.Start
+                                    )
+                                    RadioButton(
+                                        modifier = Modifier
+                                            .weight(1f,true),
+                                        selected = if(index.value == i) true else false,
+                                        colors = RadioButtonDefaults.colors(
+                                            selectedColor = GrayDarker,
+                                            unselectedColor = Color.Gray,
+                                        ),
+                                        onClick = {
+                                            if(index.value == i){
+                                            }else{
+                                                setAction(i)
+                                                index.value = i
+                                                showDialog.value = false
+                                            }
+                                        },
+                                    )
+                                }
+//                            }
                         }
                     }
                 }
@@ -156,15 +164,3 @@ fun AlertDialogSource(
         }
     }
 }
-
-//@Preview
-//@Composable
-//fun prevAlertDialogSource(){
-//    val showDialog =  remember { mutableStateOf(false) }
-//    AlertDialogSource(
-//        showDialog = showDialog,
-//        selectedIndex = 3,
-//        setAction = {
-//        }
-//    )
-//}
