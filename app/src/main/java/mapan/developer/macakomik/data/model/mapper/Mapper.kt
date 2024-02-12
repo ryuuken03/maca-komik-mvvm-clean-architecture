@@ -1,6 +1,5 @@
 package mapan.developer.macakomik.data.model.mapper
 
-import android.util.Log
 import mapan.developer.macakomik.data.datasource.remote.model.Browse
 import mapan.developer.macakomik.data.datasource.remote.model.ChapterComic
 import mapan.developer.macakomik.data.datasource.remote.model.Comic
@@ -10,7 +9,6 @@ import mapan.developer.macakomik.data.model.ComicChapter
 import mapan.developer.macakomik.data.model.ComicChapterPage
 import mapan.developer.macakomik.data.model.ComicChapterPageList
 import mapan.developer.macakomik.data.model.ComicDetail
-import mapan.developer.macakomik.data.model.ComicFilter
 import mapan.developer.macakomik.data.model.ComicHome
 import mapan.developer.macakomik.data.model.ComicList
 import mapan.developer.macakomik.data.model.ComicThumbnail
@@ -54,6 +52,10 @@ object Mapper {
                 var split = data.value!!.split("Average")
                 title = split[0]
             }
+//            if(data.name!!.equals("Alternative",true)){
+//                var split = data.value!!.split(", ")
+//                title = split[split.size-1]
+//            }
             if(data.name!!.contains("Genre",true)){
                 genre = data.value!!
             }
@@ -67,6 +69,14 @@ object Mapper {
         var chapters = ArrayList<ComicChapter>()
         for(i in  0 .. detailComic.chapterList!!.size-1){
             var data = detailComic.chapterList!![i]
+            if(title.equals("")){
+                var split = data.url!!.split("/series/")
+                var split2 = split[1].split("/")
+                var titles = split2[0].split("-")
+                titles.forEach{
+                    title += it.replaceFirstChar { it.uppercase() }+" "
+                }
+            }
             chapters.add(mapFromChapterComicAPIToComicChapter(data))
         }
         var result = ComicDetail(
@@ -106,6 +116,14 @@ object Mapper {
         var chapters = detailComic?.chapterList!!
         var currentChapter = ""
         for(i in 0 ..  chapters.size-1){
+            if(title.equals("")){
+                var split = chapters[i].url!!.split("/series/")
+                var split2 = split[1].split("/")
+                var titles = split2[0].split("-")
+                titles.forEach{
+                    title += it.replaceFirstChar { it.uppercase() }+" "
+                }
+            }
             if(chapters[i].url.equals(currentUrl)){
                 currentChapter = chapters[i].title!!
                 if(i == 0){
