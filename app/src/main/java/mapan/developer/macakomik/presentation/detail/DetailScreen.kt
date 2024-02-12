@@ -38,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.UiState
+import mapan.developer.macakomik.presentation.component.ContentSwipeRefresh
 import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.presentation.component.ProgressLoading
@@ -107,41 +108,49 @@ fun DetailScreen(
                     .background(GrayDarker)
                     .padding(it)
             ) {
-                viewModel.uiState.collectAsState(initial = UiState.Loading()).value.let { uiState ->
-                    when (uiState) {
-                        is UiState.Loading -> {
-                            ProgressLoading()
-                            var urlChange = URLDecoder.decode(url, "UTF-8")
-                            var imageChange = URLDecoder.decode(image, "UTF-8")
-                            viewModel.changeUrl(urlChange,imageChange)
-                        }
-
-                        is UiState.Success -> {
-                            if(uiState.data == null){
-                                EmptyData(message = stringResource(R.string.text_data_not_found))
-                            }else{
-                                isLoad.value = true
-                                var data = uiState.data
-                                if(data.imgSrc == null){
+                ContentSwipeRefresh(
+                    modifier = Modifier,
+                    onRefresh = {
+                        viewModel.setLoading()
+                    },
+                    content = {
+                        viewModel.uiState.collectAsState(initial = UiState.Loading()).value.let { uiState ->
+                            when (uiState) {
+                                is UiState.Loading -> {
+                                    ProgressLoading()
+                                    var urlChange = URLDecoder.decode(url, "UTF-8")
                                     var imageChange = URLDecoder.decode(image, "UTF-8")
-                                    data.imgSrc = imageChange
+                                    viewModel.changeUrl(urlChange,imageChange)
                                 }
-                                DetailContent(
-                                    modifier = Modifier,
-                                    data = uiState.data,
-                                    urlDetail = url,
-                                    viewModel = viewModel,
-                                    type = 3,
-                                    navigateToChapter = navigateToChapter
-                                )
+
+                                is UiState.Success -> {
+                                    if(uiState.data == null){
+                                        EmptyData(message = stringResource(R.string.text_data_not_found))
+                                    }else{
+                                        isLoad.value = true
+                                        var data = uiState.data
+                                        if(data.imgSrc == null){
+                                            var imageChange = URLDecoder.decode(image, "UTF-8")
+                                            data.imgSrc = imageChange
+                                        }
+                                        DetailContent(
+                                            modifier = Modifier,
+                                            data = uiState.data,
+                                            urlDetail = url,
+                                            viewModel = viewModel,
+                                            type = 3,
+                                            navigateToChapter = navigateToChapter
+                                        )
+                                    }
+                                }
+
+                                is UiState.Error -> {
+                                    EmptyData(message = stringResource(R.string.text_error_data))
+                                }
                             }
                         }
-
-                        is UiState.Error -> {
-                            EmptyData(message = stringResource(R.string.text_error_data))
-                        }
                     }
-                }
+                )
             }
         }
     )
