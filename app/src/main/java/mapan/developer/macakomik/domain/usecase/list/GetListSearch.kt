@@ -1,10 +1,6 @@
 package mapan.developer.macakomik.domain.usecase.list
 
-import android.util.Log
 import kotlinx.coroutines.flow.Flow
-import mapan.developer.macakomik.data.datasource.remote.ShinigamiApiService
-import mapan.developer.macakomik.data.datasource.remote.model.Comic
-import mapan.developer.macakomik.data.model.ComicHome
 import mapan.developer.macakomik.data.model.ComicList
 import mapan.developer.macakomik.domain.repository.ShinigamiRepository
 import mapan.developer.macakomik.domain.repository.WebScrappingRepository
