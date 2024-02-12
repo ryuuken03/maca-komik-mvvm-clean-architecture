@@ -34,6 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.UiState
+import mapan.developer.macakomik.presentation.component.ContentSwipeRefresh
 import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.presentation.component.ProgressLoading
@@ -119,41 +120,49 @@ fun ReadScreen(
                     .background(GrayDarker)
                     .padding(it)
             ) {
-                viewModel.uiState.collectAsState(initial = UiState.Loading()).value.let { uiState ->
-                    when (uiState) {
-                        is UiState.Loading -> {
-                            ProgressLoading()
-                            var urlChange = URLDecoder.decode(url, "UTF-8")
-                            var urlDetailChange = URLDecoder.decode(urlDetail, "UTF-8")
-                            if(!viewModel.init){
-                                viewModel.changeUrl(urlChange,urlDetailChange,image)
-                            }
-                            viewModel.getRead()
-                        }
+                ContentSwipeRefresh(
+                    modifier = Modifier,
+                    onRefresh = {
+                        viewModel.setLoading()
+                    },
+                    content = {
+                        viewModel.uiState.collectAsState(initial = UiState.Loading()).value.let { uiState ->
+                            when (uiState) {
+                                is UiState.Loading -> {
+                                    ProgressLoading()
+                                    var urlChange = URLDecoder.decode(url, "UTF-8")
+                                    var urlDetailChange = URLDecoder.decode(urlDetail, "UTF-8")
+                                    if(!viewModel.init){
+                                        viewModel.changeUrl(urlChange,urlDetailChange,image)
+                                    }
+                                    viewModel.getRead()
+                                }
 
-                        is UiState.Success -> {
-                            if(uiState.data == null){
-                                EmptyData(message = stringResource(R.string.text_data_not_found))
-                            }else{
-                                ReadContent(
-                                    modifier = Modifier,
-                                    data = uiState.data,
-                                    image = image,
-                                    urlDetail = urlDetail,
-                                    fromDetail = fromDetail,
-                                    showSearch = showSearch,
-                                    viewModel = viewModel,
-                                    navigateToDetail = navigateToDetail,
-                                    navigateBack = navigateBack,
-                                )
-                            }
-                        }
+                                is UiState.Success -> {
+                                    if(uiState.data == null){
+                                        EmptyData(message = stringResource(R.string.text_data_not_found))
+                                    }else{
+                                        ReadContent(
+                                            modifier = Modifier,
+                                            data = uiState.data,
+                                            image = image,
+                                            urlDetail = urlDetail,
+                                            fromDetail = fromDetail,
+                                            showSearch = showSearch,
+                                            viewModel = viewModel,
+                                            navigateToDetail = navigateToDetail,
+                                            navigateBack = navigateBack,
+                                        )
+                                    }
+                                }
 
-                        is UiState.Error -> {
-                            EmptyData(message = stringResource(R.string.text_error_data))
+                                is UiState.Error -> {
+                                    EmptyData(message = stringResource(R.string.text_error_data))
+                                }
+                            }
                         }
                     }
-                }
+                )
             }
         }
     )
