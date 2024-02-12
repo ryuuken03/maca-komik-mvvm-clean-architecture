@@ -1,10 +1,7 @@
 package mapan.developer.macakomik.presentation.history
 
-import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,11 +10,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import mapan.developer.macakomik.data.UiState
 import mapan.developer.macakomik.data.datasource.local.db.entity.ComicHistoryEntity
-import mapan.developer.macakomik.data.model.ComicHome
 import mapan.developer.macakomik.domain.usecase.history.DeleteAllComicHistory
 import mapan.developer.macakomik.domain.usecase.history.GetListComicHistory
 import mapan.developer.macakomik.domain.usecase.history.GetSearchListComicHistory
-import mapan.developer.macakomik.domain.usecase.home.GetHome
 import javax.inject.Inject
 
 /***
