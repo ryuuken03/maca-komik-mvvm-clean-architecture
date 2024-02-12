@@ -8,7 +8,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import mapan.developer.macakomik.data.datasource.local.db.AppDatabase
-import mapan.developer.macakomik.data.datasource.local.db.dao.AppDao
 import mapan.developer.macakomik.data.datasource.remote.ShinigamiApiService
 import mapan.developer.macakomik.data.repository.DatabaseRepositoryImpl
 import mapan.developer.macakomik.data.repository.ShinigamiRepositoryImpl
