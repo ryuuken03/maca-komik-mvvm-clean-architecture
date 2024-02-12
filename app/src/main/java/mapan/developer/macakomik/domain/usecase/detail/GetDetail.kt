@@ -1,9 +1,7 @@
 package mapan.developer.macakomik.domain.usecase.detail
 
 import kotlinx.coroutines.flow.Flow
-import mapan.developer.macakomik.data.datasource.remote.ShinigamiApiService
 import mapan.developer.macakomik.data.model.ComicDetail
-import mapan.developer.macakomik.data.model.ComicHome
 import mapan.developer.macakomik.domain.repository.ShinigamiRepository
 import mapan.developer.macakomik.domain.repository.WebScrappingRepository
 import mapan.developer.macakomik.domain.usecase.BaseUseCase
