@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.UiState
+import mapan.developer.macakomik.presentation.component.ContentSwipeRefresh
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.presentation.component.ProgressLoading
 import mapan.developer.macakomik.presentation.component.toolbar.ToolbarDefault
@@ -67,34 +68,42 @@ fun ListScreen(
                     .background(GrayDarker)
                     .padding(it)
             ) {
-                viewModel.uiState.collectAsState().value.let { uiState ->
-                    when (uiState) {
-                        is UiState.Loading -> {
-                            ProgressLoading()
-                            viewModel.getData()
-                        }
+                ContentSwipeRefresh(
+                    modifier = Modifier,
+                    onRefresh = {
+                        viewModel.resetData()
+                    },
+                    content = {
+                        viewModel.uiState.collectAsState().value.let { uiState ->
+                            when (uiState) {
+                                is UiState.Loading -> {
+                                    ProgressLoading()
+                                    viewModel.getData()
+                                }
 
-                        is UiState.Success -> {
-                            viewModel.stillLoad = false
-                            if(uiState.data == null){
-                                EmptyData(message = stringResource(R.string.text_data_not_found))
-                            }else{
-                                ListContent(
-                                    modifier = Modifier,
-                                    data = uiState.data,
-                                    pathUrl = pathUrl,
-                                    viewModel = viewModel,
-                                    navigateToDetail = navigateToDetail
-                                )
+                                is UiState.Success -> {
+                                    viewModel.stillLoad = false
+                                    if (uiState.data == null) {
+                                        EmptyData(message = stringResource(R.string.text_data_not_found))
+                                    } else {
+                                        ListContent(
+                                            modifier = Modifier,
+                                            data = uiState.data,
+                                            pathUrl = pathUrl,
+                                            viewModel = viewModel,
+                                            navigateToDetail = navigateToDetail
+                                        )
+                                    }
+                                }
+
+                                is UiState.Error -> {
+                                    viewModel.stillLoad = false
+                                    EmptyData(message = stringResource(R.string.text_error_data))
+                                }
                             }
                         }
-
-                        is UiState.Error -> {
-                            viewModel.stillLoad = false
-                            EmptyData(message = stringResource(R.string.text_error_data))
-                        }
                     }
-                }
+                )
             }
         }
     )
