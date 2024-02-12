@@ -23,7 +23,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,233 +62,236 @@ fun HomeContent(
     navigateToGenre: (Int) -> Unit,
     navigateToList: (Int,String) -> Unit,
 ) {
-    val isRefreshing =  remember { mutableStateOf(false) }
     val listGridState = rememberLazyGridState()
+    val indexPosition =  remember { mutableStateOf(0) }
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                indexPosition.value = listGridState.firstVisibleItemIndex
+                return super.onPostScroll(consumed, available, source)
+            }
+        }
+    }
 
     ContentScrollUpButton(
         modifier = Modifier,
         listGridState = listGridState,
+        indexPosition = indexPosition.value,
         content = {
-            SwipeRefresh(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                state = rememberSwipeRefreshState(isRefreshing = isRefreshing.value),
-                onRefresh = {
-                    isRefreshing.value = true
-                    viewModel.setLoading()
-                    isRefreshing.value = false
-                }
-            ) {
-                LazyVerticalGrid(
-                    modifier = modifier
-                        .fillMaxSize(),
-                    state = listGridState,
-                    columns = GridCells.Fixed(3),
-                    content = {
-                        if (data != null) {
-                            var isPopularEmpty = true
-                            var isGenreEmpty = true
-                            var isListEmpty = true
-                            if (data.popular != null) {
-                                if (data.popular!!.size > 0) {
-                                    isPopularEmpty = false
-                                    item(span = { GridItemSpan(3) }) {
-                                        Text(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 5.dp, vertical = 10.dp),
-                                            text = "Populer Hari Ini",
-                                            fontSize = 16.sp,
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Bold,
-                                        )
-                                    }
-                                    item(span = { GridItemSpan(3) }) {
-                                        LazyRow(
-                                            content = {
-                                                items(count = data.popular!!.size) { index ->
-                                                    var thumbnail = data.popular!![index]
-                                                    ThumbnailComic(
-                                                        data = thumbnail,
-                                                        onClick = fun() {
-                                                            var image = "-"
-                                                            if (thumbnail.imgSrc != null) {
-                                                                image = URLEncoder.encode(
-                                                                    thumbnail.imgSrc,
-                                                                    "UTF-8"
-                                                                )
-                                                            }
-                                                            var url = URLEncoder.encode(
-                                                                thumbnail.url!!,
-                                                                "UTF-8"
-                                                            )
-                                                            navigateToDetail(image, url)
-                                                        },
-                                                        modifier = modifier
-                                                            .width(110.dp)
-                                                            .animateItemPlacement(
-                                                                tween(
-                                                                    durationMillis = 100
-                                                                )
-                                                            )
-                                                    )
-                                                }
-                                            }
-                                        )
-                                    }
-                                    item(span = { GridItemSpan(3) }) {
-                                        var index = viewModel.index
-                                        var sourceTitle =
-                                            stringArrayResource(
-                                                id =
-                                                R.array.source_website_title
-                                            )[index]
-                                        OutlinedButtonPrimary(
-                                            title = ("Proyek " + sourceTitle).uppercase(),
-                                            fontSize = 14.sp,
-                                            onClick = {
-                                                var projectPath = "project"
-                                                if (index == 0) {
-                                                    projectPath = "project-list"
-                                                } else if (index == 1) {
-                                                    projectPath = "project"
-                                                } else if (index == 2) {
-                                                    projectPath = "pj"
-                                                }
-                                                var pathEncode =
-                                                    URLEncoder.encode(projectPath, "UTF-8")
-                                                navigateToList(index, pathEncode)
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                            if (genres.size > 0) {
-                                isGenreEmpty = false
+            LazyVerticalGrid(
+                modifier = modifier
+                    .fillMaxSize()
+                    .nestedScroll(nestedScrollConnection),
+                state = listGridState,
+                columns = GridCells.Fixed(3),
+                content = {
+                    if (data != null) {
+                        var isPopularEmpty = true
+                        var isGenreEmpty = true
+                        var isListEmpty = true
+                        if (data.popular != null) {
+                            if (data.popular!!.size > 0) {
+                                isPopularEmpty = false
                                 item(span = { GridItemSpan(3) }) {
                                     Text(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(horizontal = 5.dp, vertical = 10.dp),
-                                        text = "Genre Komik",
+                                        text = "Populer Hari Ini",
                                         fontSize = 16.sp,
                                         color = Color.White,
                                         fontWeight = FontWeight.Bold,
                                     )
                                 }
-                                var countRowGenre = 3
-                                items(
-                                    count = countRowGenre, span = { GridItemSpan(3) }
-                                ) { index ->
-                                    var first = index * 2
-                                    var second = first + 1
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                    ) {
-                                        GenreComic(
-                                            modifier = Modifier
-                                                .weight(1f, false),
-                                            data = genres[first],
-                                            onClick = {
-                                                var index = viewModel.index
-                                                var path = "genres/" + genres[first].name!!
-                                                    .lowercase().replace(" ", "-")
-                                                var pathEncode = URLEncoder.encode(path, "UTF-8")
-                                                navigateToList(index, pathEncode)
+                                item(span = { GridItemSpan(3) }) {
+                                    LazyRow(
+                                        content = {
+                                            items(count = data.popular!!.size) { index ->
+                                                var thumbnail = data.popular!![index]
+                                                ThumbnailComic(
+                                                    data = thumbnail,
+                                                    onClick = fun() {
+                                                        var image = "-"
+                                                        if (thumbnail.imgSrc != null) {
+                                                            image = URLEncoder.encode(
+                                                                thumbnail.imgSrc,
+                                                                "UTF-8"
+                                                            )
+                                                        }
+                                                        var url = URLEncoder.encode(
+                                                            thumbnail.url!!,
+                                                            "UTF-8"
+                                                        )
+                                                        navigateToDetail(image, url)
+                                                    },
+                                                    modifier = modifier
+                                                        .width(110.dp)
+                                                        .animateItemPlacement(
+                                                            tween(
+                                                                durationMillis = 100
+                                                            )
+                                                        )
+                                                )
                                             }
-                                        )
-
-                                        GenreComic(
-                                            modifier = Modifier
-                                                .weight(1f, false),
-                                            data = genres[second],
-                                            onClick = {
-                                                var index = viewModel.index
-                                                var path = "genres/" + genres[second].name!!
-                                                    .lowercase().replace(" ", "-")
-                                                var pathEncode = URLEncoder.encode(path, "UTF-8")
-                                                navigateToList(index, pathEncode)
-                                            }
-                                        )
-                                    }
+                                        }
+                                    )
                                 }
                                 item(span = { GridItemSpan(3) }) {
+                                    var index = viewModel.index
+                                    var sourceTitle =
+                                        stringArrayResource(
+                                            id =
+                                            R.array.source_website_title
+                                        )[index]
                                     OutlinedButtonPrimary(
-                                        title = "Semua Genre".uppercase(),
+                                        title = ("Proyek " + sourceTitle).uppercase(),
                                         fontSize = 14.sp,
                                         onClick = {
-                                            navigateToGenre(viewModel.index)
+                                            var projectPath = "project"
+                                            if (index == 0) {
+                                                projectPath = "project-list"
+                                            } else if (index == 1) {
+                                                projectPath = "project"
+                                            } else if (index == 2) {
+                                                projectPath = "pj"
+                                            }
+                                            var pathEncode =
+                                                URLEncoder.encode(projectPath, "UTF-8")
+                                            navigateToList(index, pathEncode)
                                         }
                                     )
                                 }
                             }
-                            if (data.list != null) {
-                                if (data.popular!!.size > 0) {
-                                    isListEmpty = false
-                                    item(span = { GridItemSpan(3) }) {
-                                        Text(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(horizontal = 5.dp, vertical = 10.dp),
-                                            text = "Komik Terbaru",
-                                            fontSize = 16.sp,
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Bold,
-                                        )
-                                    }
-                                    var count = 15
-                                    if (data.list!!.size < count) {
-                                        count = data.list!!.size
-                                    }
-                                    items(count = count) { index ->
-                                        var thumbnail = data.list!![index]
-                                        ThumbnailComic(
-                                            data = thumbnail,
-                                            onClick = fun() {
-                                                var image = "-"
-                                                if (thumbnail.imgSrc != null) {
-                                                    image =
-                                                        URLEncoder.encode(thumbnail.imgSrc, "UTF-8")
-                                                }
-                                                var url =
-                                                    URLEncoder.encode(thumbnail.url!!, "UTF-8")
-                                                navigateToDetail(image, url)
-                                            },
-                                            modifier = modifier
-                                                .fillMaxWidth()
-                                                .animateItemPlacement(tween(durationMillis = 100))
-                                        )
-                                    }
-                                    item(span = { GridItemSpan(3) }) {
-                                        OutlinedButtonPrimary(
-                                            title = "Lihat Semua".uppercase(),
-                                            fontSize = 14.sp,
-                                            onClick = {
-                                                var index = viewModel.index
-                                                var pathEncode = URLEncoder.encode("-", "UTF-8")
-                                                navigateToList(index, pathEncode)
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-
-                            if (isPopularEmpty && isListEmpty && isGenreEmpty) {
-                                item(span = { GridItemSpan(3) }) {
-                                    EmptyData(stringResource(R.string.text_data_not_found))
-                                }
-                            }
-                        } else {
+                        }
+                        if (genres.size > 0) {
+                            isGenreEmpty = false
                             item(span = { GridItemSpan(3) }) {
-                                EmptyData(stringResource(R.string.text_data_not_found))
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 5.dp, vertical = 10.dp),
+                                    text = "Genre Komik",
+                                    fontSize = 16.sp,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                            var countRowGenre = 3
+                            items(
+                                count = countRowGenre, span = { GridItemSpan(3) }
+                            ) { index ->
+                                var first = index * 2
+                                var second = first + 1
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                ) {
+                                    GenreComic(
+                                        modifier = Modifier
+                                            .weight(1f, false),
+                                        data = genres[first],
+                                        onClick = {
+                                            var index = viewModel.index
+                                            var path = "genres/" + genres[first].name!!
+                                                .lowercase().replace(" ", "-")
+                                            var pathEncode = URLEncoder.encode(path, "UTF-8")
+                                            navigateToList(index, pathEncode)
+                                        }
+                                    )
+
+                                    GenreComic(
+                                        modifier = Modifier
+                                            .weight(1f, false),
+                                        data = genres[second],
+                                        onClick = {
+                                            var index = viewModel.index
+                                            var path = "genres/" + genres[second].name!!
+                                                .lowercase().replace(" ", "-")
+                                            var pathEncode = URLEncoder.encode(path, "UTF-8")
+                                            navigateToList(index, pathEncode)
+                                        }
+                                    )
+                                }
+                            }
+                            item(span = { GridItemSpan(3) }) {
+                                OutlinedButtonPrimary(
+                                    title = "Semua Genre".uppercase(),
+                                    fontSize = 14.sp,
+                                    onClick = {
+                                        navigateToGenre(viewModel.index)
+                                    }
+                                )
                             }
                         }
-                    },
-                    contentPadding = PaddingValues(8.dp),
+                        if (data.list != null) {
+                            if (data.popular!!.size > 0) {
+                                isListEmpty = false
+                                item(span = { GridItemSpan(3) }) {
+                                    Text(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 5.dp, vertical = 10.dp),
+                                        text = "Komik Terbaru",
+                                        fontSize = 16.sp,
+                                        color = Color.White,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                }
+                                var count = 15
+                                if (data.list!!.size < count) {
+                                    count = data.list!!.size
+                                }
+                                items(count = count) { index ->
+                                    var thumbnail = data.list!![index]
+                                    ThumbnailComic(
+                                        data = thumbnail,
+                                        onClick = fun() {
+                                            var image = "-"
+                                            if (thumbnail.imgSrc != null) {
+                                                image =
+                                                    URLEncoder.encode(thumbnail.imgSrc, "UTF-8")
+                                            }
+                                            var url =
+                                                URLEncoder.encode(thumbnail.url!!, "UTF-8")
+                                            navigateToDetail(image, url)
+                                        },
+                                        modifier = modifier
+                                            .fillMaxWidth()
+                                            .animateItemPlacement(tween(durationMillis = 100))
+                                    )
+                                }
+                                item(span = { GridItemSpan(3) }) {
+                                    OutlinedButtonPrimary(
+                                        title = "Lihat Semua".uppercase(),
+                                        fontSize = 14.sp,
+                                        onClick = {
+                                            var index = viewModel.index
+                                            var pathEncode = URLEncoder.encode("-", "UTF-8")
+                                            navigateToList(index, pathEncode)
+                                        }
+                                    )
+                                }
+                            }
+                        }
 
-                    )
-            }
+                        if (isPopularEmpty && isListEmpty && isGenreEmpty) {
+                            item(span = { GridItemSpan(3) }) {
+                                EmptyData(stringResource(R.string.text_data_not_found),false)
+                            }
+                        }
+                    } else {
+                        item(span = { GridItemSpan(3) }) {
+                            EmptyData(stringResource(R.string.text_data_not_found),false)
+                        }
+                    }
+                },
+                contentPadding = PaddingValues(8.dp),
+
+                )
         }
     )
 }
