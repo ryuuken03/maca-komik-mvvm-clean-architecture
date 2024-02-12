@@ -1,7 +1,6 @@
 package mapan.developer.macakomik.presentation.genre
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -13,14 +12,8 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import mapan.developer.macakomik.data.UiState
 import mapan.developer.macakomik.R
-import mapan.developer.macakomik.data.datasource.remote.model.Comic
 import mapan.developer.macakomik.data.model.ComicFilter
-import mapan.developer.macakomik.data.model.ComicList
-import mapan.developer.macakomik.data.model.ComicThumbnail
 import mapan.developer.macakomik.domain.usecase.genre.GetGenre
-import mapan.developer.macakomik.domain.usecase.list.GetList
-import mapan.developer.macakomik.domain.usecase.list.GetListProject
-import mapan.developer.macakomik.domain.usecase.list.GetListSearch
 import javax.inject.Inject
 
 /***
@@ -36,7 +29,7 @@ class GenreViewModel @Inject constructor(
     var sources = context.resources.getStringArray(R.array.source_website_url)
     var index = -1
     var url = ""
-    var isInit = false
+//    var isInit = false
 
     fun setInit(ind : Int){
         index = ind
@@ -77,13 +70,13 @@ class GenreViewModel @Inject constructor(
 
     fun resetData(){
         _uiState.value = UiState.Loading()
-        getGenre()
+//        getGenre()
     }
 
     fun getGenre(){
-        if(!isInit){
-            isInit = true
-        }
+//        if(!isInit){
+//            isInit = true
+//        }
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 getGenre.execute(url)
