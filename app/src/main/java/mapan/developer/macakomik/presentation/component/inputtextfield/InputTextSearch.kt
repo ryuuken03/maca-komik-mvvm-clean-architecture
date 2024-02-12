@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.sp
  * Created By Mohammad Toriq on 19/01/2024
  */
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 fun InputTextSearch (
     search : String?,
     onClear :()-> Unit,
