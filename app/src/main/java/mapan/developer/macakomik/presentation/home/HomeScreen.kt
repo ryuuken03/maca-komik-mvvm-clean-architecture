@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.UiState
 import mapan.developer.macakomik.data.model.ComicFilter
+import mapan.developer.macakomik.presentation.component.ContentSwipeRefresh
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.presentation.component.ProgressLoading
 import mapan.developer.macakomik.presentation.component.dialog.AlertDialogSource
@@ -44,18 +45,19 @@ fun HomeScreen(
     val title by viewModel.title.collectAsStateWithLifecycle()
     val canBrowse by viewModel.canBrowse.collectAsStateWithLifecycle()
     if(showDialog.value){
-        AlertDialogSource(
-            showDialog = showDialog,
-            selectedIndex = viewModel.index,
-            setAction = { index ->
-                if(canBrowse){
+        if(canBrowse){
+            AlertDialogSource(
+                showDialog = showDialog,
+                selectedIndex = viewModel.index,
+                setAction = { index ->
                     viewModel.setIndexSource(index)
-                }else{
-                    var message = context.getString(R.string.text_please_waiting)
-                    Toast.makeText(context, message,Toast.LENGTH_SHORT).show()
                 }
-            }
-        )
+            )
+        }else{
+            showDialog.value = false
+            var message = context.getString(R.string.text_please_waiting)
+            Toast.makeText(context, message,Toast.LENGTH_SHORT).show()
+        }
     }
     Scaffold(
         topBar ={
@@ -75,50 +77,56 @@ fun HomeScreen(
                     .background(GrayDarker)
                     .padding(it)
             ) {
-                viewModel.uiState.collectAsState(initial = UiState.Loading()).value.let { uiState ->
-                    when (uiState) {
-                        is UiState.Loading -> {
-                            ProgressLoading()
-                            viewModel.getBrowse()
-                        }
-
-                        is UiState.Success -> {
-                            if(uiState.data == null){
-                                EmptyData(message = stringResource(R.string.text_data_not_found))
-                            }else{
-                                viewModel.uiGenreState
-                                    .collectAsState(initial = UiState.Loading())
-                                    .value.let{ uiGenreState ->
-                                        var genres = ArrayList<ComicFilter>()
-                                        when (uiState) {
-                                            is UiState.Loading -> {
-                                            }
-                                            is UiState.Success -> {
-                                                uiGenreState.data?.forEach {
-                                                    genres.add(it)
+                ContentSwipeRefresh(
+                    modifier = Modifier,
+                    onRefresh = {
+                        viewModel.setLoading()
+                    },
+                    content = {
+                        viewModel.uiState.collectAsState(initial = UiState.Loading()).value.let { uiState ->
+                            when (uiState) {
+                                is UiState.Loading -> {
+                                    ProgressLoading()
+                                    viewModel.getBrowse()
+                                }
+                                is UiState.Success -> {
+                                    if(uiState.data == null){
+                                        EmptyData(message = stringResource(R.string.text_data_not_found))
+                                    }else{
+                                        viewModel.uiGenreState
+                                            .collectAsState(initial = UiState.Loading())
+                                            .value.let{ uiGenreState ->
+                                                var genres = ArrayList<ComicFilter>()
+                                                when (uiState) {
+                                                    is UiState.Loading -> {
+                                                    }
+                                                    is UiState.Success -> {
+                                                        uiGenreState.data?.forEach {
+                                                            genres.add(it)
+                                                        }
+                                                    }
+                                                    is UiState.Error -> {
+                                                    }
                                                 }
+                                                HomeContent(
+                                                    modifier = Modifier,
+                                                    data = uiState.data,
+                                                    genres = genres,
+                                                    viewModel = viewModel,
+                                                    navigateToDetail = navigateToDetail,
+                                                    navigateToGenre = navigateToGenre,
+                                                    navigateToList = navigateToList
+                                                )
                                             }
-                                            is UiState.Error -> {
-                                            }
-                                        }
-                                        HomeContent(
-                                            modifier = Modifier,
-                                            data = uiState.data,
-                                            genres = genres,
-                                            viewModel = viewModel,
-                                            navigateToDetail = navigateToDetail,
-                                            navigateToGenre = navigateToGenre,
-                                            navigateToList = navigateToList
-                                        )
                                     }
+                                }
+                                is UiState.Error -> {
+                                    EmptyData(message = uiState.message!!)
+                                }
                             }
                         }
-
-                        is UiState.Error -> {
-                            EmptyData(message = uiState.message!!)
-                        }
                     }
-                }
+                )
             }
         }
     )
