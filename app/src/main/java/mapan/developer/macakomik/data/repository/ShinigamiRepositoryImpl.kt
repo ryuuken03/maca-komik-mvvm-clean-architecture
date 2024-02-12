@@ -1,26 +1,14 @@
 package mapan.developer.macakomik.data.repository
 
-import android.content.Context
-import android.util.Log
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import mapan.developer.macakomik.data.UiState
 import mapan.developer.macakomik.data.datasource.remote.ShinigamiApiService
-import mapan.developer.macakomik.data.datasource.remote.model.Browse
-import mapan.developer.macakomik.data.datasource.remote.model.Comic
-import mapan.developer.macakomik.data.datasource.remote.model.DetailComic
-import mapan.developer.macakomik.data.datasource.remote.model.ImageList
 import mapan.developer.macakomik.data.model.ComicHome
-import mapan.developer.macakomik.data.model.ComicThumbnail
 import mapan.developer.macakomik.data.model.mapper.Mapper
 import mapan.developer.macakomik.domain.repository.ShinigamiRepository
-import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.model.ComicChapterPageList
 import mapan.developer.macakomik.data.model.ComicDetail
 import mapan.developer.macakomik.data.model.ComicList
-import retrofit2.HttpException
-import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
