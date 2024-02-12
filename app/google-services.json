@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "885034879719",
+    "project_id": "maca-7eee3",
+    "storage_bucket": "maca-7eee3.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:885034879719:android:a642952d4bc6a2f462b042",
+        "android_client_info": {
+          "package_name": "mapan.developer.macakomik"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAL1nmEniNlS8DHcsyAhauU3LqWWQclHRc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
