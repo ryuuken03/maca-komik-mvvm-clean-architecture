@@ -1,9 +1,6 @@
 package mapan.developer.macakomik.presentation.list
 
 import android.content.Context
-import android.util.Log
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -15,7 +12,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import mapan.developer.macakomik.data.UiState
 import mapan.developer.macakomik.R
-import mapan.developer.macakomik.data.datasource.remote.model.Comic
 import mapan.developer.macakomik.data.model.ComicList
 import mapan.developer.macakomik.data.model.ComicThumbnail
 import mapan.developer.macakomik.domain.usecase.list.GetList
