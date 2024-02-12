@@ -37,6 +37,9 @@ class DetailViewModel @Inject constructor(
     private val _isAddedBookmark = MutableStateFlow(false)
     val isAddedBookmark = _isAddedBookmark.asStateFlow()
 
+    fun setLoading(){
+        _uiState.value = UiState.Loading()
+    }
     fun changeUrl(s:String, image:String){
         url = s
         imgSrc = image
