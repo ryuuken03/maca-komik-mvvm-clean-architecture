@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.UiState
+import mapan.developer.macakomik.presentation.component.ContentSwipeRefresh
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.presentation.component.ProgressLoading
 import mapan.developer.macakomik.presentation.component.toolbar.ToolbarDefault
@@ -56,33 +57,41 @@ fun GenreScreen(
                     .background(GrayDarker)
                     .padding(it)
             ) {
-                viewModel.uiState.collectAsState(initial = UiState.Loading()).value.let { uiState ->
-                    when (uiState) {
-                        is UiState.Loading -> {
-                            ProgressLoading()
-                            if(!viewModel.isInit){
-                                viewModel.resetData()
-                            }
-                        }
+                ContentSwipeRefresh(
+                    modifier = Modifier,
+                    onRefresh = {
+                        viewModel.resetData()
+                    },
+                    content = {
+                        viewModel.uiState.collectAsState(initial = UiState.Loading()).value.let { uiState ->
+                            when (uiState) {
+                                is UiState.Loading -> {
+                                    ProgressLoading()
+//                                    if (!viewModel.isInit) {
+                                        viewModel.getGenre()
+//                                    }
+                                }
 
-                        is UiState.Success -> {
-                            if(uiState.data == null){
-                                EmptyData(message = stringResource(R.string.text_data_not_found))
-                            }else{
-                                GenreContent(
-                                    modifier = Modifier,
-                                    data = uiState.data,
-                                    viewModel = viewModel,
-                                    navigateToList = navigateToList
-                                )
-                            }
-                        }
+                                is UiState.Success -> {
+                                    if (uiState.data == null) {
+                                        EmptyData(message = stringResource(R.string.text_data_not_found))
+                                    } else {
+                                        GenreContent(
+                                            modifier = Modifier,
+                                            data = uiState.data,
+                                            viewModel = viewModel,
+                                            navigateToList = navigateToList
+                                        )
+                                    }
+                                }
 
-                        is UiState.Error -> {
-                            EmptyData(message = stringResource(R.string.text_error_data))
+                                is UiState.Error -> {
+                                    EmptyData(message = stringResource(R.string.text_error_data))
+                                }
+                            }
                         }
                     }
-                }
+                )
             }
         }
     )
