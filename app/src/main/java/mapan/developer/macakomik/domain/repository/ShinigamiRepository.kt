@@ -1,10 +1,6 @@
 package mapan.developer.macakomik.domain.repository
 
 import kotlinx.coroutines.flow.Flow
-import mapan.developer.macakomik.data.datasource.remote.model.Browse
-import mapan.developer.macakomik.data.datasource.remote.model.Comic
-import mapan.developer.macakomik.data.datasource.remote.model.DetailComic
-import mapan.developer.macakomik.data.datasource.remote.model.ImageList
 import mapan.developer.macakomik.data.model.ComicChapterPageList
 import mapan.developer.macakomik.data.model.ComicDetail
 import mapan.developer.macakomik.data.model.ComicHome
