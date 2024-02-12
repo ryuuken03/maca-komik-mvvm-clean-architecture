@@ -36,52 +36,55 @@ fun ContentScrollUpButton(
     modifier: Modifier,
     listState : LazyListState? = null,
     listGridState : LazyGridState? = null,
+    indexPosition : Int = -1,
     content : @Composable () ->Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
     Box {
         content()
-        Column(
-            modifier = modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Bottom
-        ) {
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 10.dp, vertical = 30.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
+        if(indexPosition == -1 || indexPosition > 1 ){
+            Column(
+                modifier = modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Bottom
             ) {
-
-                Box(
+                Row(
                     modifier = Modifier
-                        .width(50.dp)
-                        .height(50.dp)
-                        .background(
-                            color = md_theme_light_primary,
-                            shape = RoundedCornerShape(100),
-                        )
-                        .noRippleClickable {
-                            coroutineScope.launch {
-                                if(listGridState!=null){
-                                    listGridState.scrollToItem(index = 0)
-                                }
-                                if(listState!=null){
-                                    listState.scrollToItem(index = 0)
-                                }
-                            }
-                        },
-                    contentAlignment = Alignment.Center
+                        .padding(horizontal = 10.dp, vertical = 30.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowUp,
-                        contentDescription = "scrollUp",
-                        tint = GrayDarker,
+
+                    Box(
                         modifier = Modifier
-                            .width(40.dp)
-                            .height(40.dp)
-                            .padding(5.dp),
-                    )
+                            .width(50.dp)
+                            .height(50.dp)
+                            .background(
+                                color = md_theme_light_primary,
+                                shape = RoundedCornerShape(100),
+                            )
+                            .noRippleClickable {
+                                coroutineScope.launch {
+                                    if(listGridState!=null){
+                                        listGridState.scrollToItem(index = 0)
+                                    }
+                                    if(listState!=null){
+                                        listState.scrollToItem(index = 0)
+                                    }
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowUp,
+                            contentDescription = "scrollUp",
+                            tint = GrayDarker,
+                            modifier = Modifier
+                                .width(40.dp)
+                                .height(40.dp)
+                                .padding(5.dp),
+                        )
+                    }
                 }
             }
         }
