@@ -76,163 +76,151 @@ fun ListContent(
     navigateToDetail: (String,String) -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    val isRefreshing =  remember { mutableStateOf(false) }
     val listGridState = rememberLazyGridState()
     ContentScrollUpButton(
         modifier = Modifier,
         listGridState = listGridState,
         content = {
-            SwipeRefresh(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                state = rememberSwipeRefreshState(isRefreshing = isRefreshing.value),
-                onRefresh = {
-                    isRefreshing.value = true
-                    viewModel.resetData()
-                    isRefreshing.value = false
-                }
-            ) {
-                LazyVerticalGrid(
-                    modifier = modifier
-                        .fillMaxSize(),
-                    state = listGridState,
-                    columns = GridCells.Fixed(3),
-                    content = {
-                        if (pathUrl.equals("-")) {
-                            item(span = { GridItemSpan(3) }) {
-                                var text by remember {
-                                    mutableStateOf(
-                                        TextFieldValue(
-                                            viewModel.search ?: ""
-                                        )
+            LazyVerticalGrid(
+                modifier = modifier
+                    .fillMaxSize(),
+                state = listGridState,
+                columns = GridCells.Fixed(3),
+                content = {
+                    if (pathUrl.equals("-")) {
+                        item(span = { GridItemSpan(3) }) {
+                            var text by remember {
+                                mutableStateOf(
+                                    TextFieldValue(
+                                        viewModel.search ?: ""
                                     )
-                                }
-                                val customTextSelectionColors = TextSelectionColors(
-                                    handleColor = Color.Gray,
-                                    backgroundColor = Color.LightGray
                                 )
-                                CompositionLocalProvider(
-                                    LocalTextSelectionColors provides customTextSelectionColors,
-                                ) {
-                                    BasicTextField(
-                                        value = text,
-                                        onValueChange = { newText ->
-                                            text = newText
-                                            if (newText.text.length == 0) {
-                                                viewModel.search = null
-                                                viewModel.resetData()
-                                            }
-                                        },
-                                        singleLine = true,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 2.dp, vertical = 10.dp)
-                                            .background(
-                                                color = Color.White,
-                                                shape = RoundedCornerShape(6.dp)
-                                            ),
-                                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                                        keyboardActions = KeyboardActions(
-                                            onSearch = {
-                                                viewModel.search = text.text
-                                                viewModel.resetData()
-                                                keyboardController?.hide()
-                                            }
+                            }
+                            val customTextSelectionColors = TextSelectionColors(
+                                handleColor = Color.Gray,
+                                backgroundColor = Color.LightGray
+                            )
+                            CompositionLocalProvider(
+                                LocalTextSelectionColors provides customTextSelectionColors,
+                            ) {
+                                BasicTextField(
+                                    value = text,
+                                    onValueChange = { newText ->
+                                        text = newText
+                                        if (newText.text.length == 0) {
+                                            viewModel.search = null
+                                            viewModel.resetData()
+                                        }
+                                    },
+                                    singleLine = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 2.dp, vertical = 10.dp)
+                                        .background(
+                                            color = Color.White,
+                                            shape = RoundedCornerShape(6.dp)
                                         ),
-                                        decorationBox = { innerTextField ->
-                                            Box(
+                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                                    keyboardActions = KeyboardActions(
+                                        onSearch = {
+                                            viewModel.search = text.text
+                                            viewModel.resetData()
+                                            keyboardController?.hide()
+                                        }
+                                    ),
+                                    decorationBox = { innerTextField ->
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .border(
+                                                    width = 1.dp,
+                                                    color = Color.Black,
+                                                    shape = RoundedCornerShape(6.dp)
+                                                )
+
+                                        ) {
+                                            Row(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .border(
-                                                        width = 1.dp,
-                                                        color = Color.Black,
-                                                        shape = RoundedCornerShape(6.dp)
-                                                    )
-
+                                                    .padding(10.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
                                             ) {
-                                                Row(
+                                                Icon(
+                                                    imageVector = Icons.Default.Search,
+                                                    contentDescription = "search",
+                                                    tint = Color.Black
+                                                )
+                                                Box(
                                                     modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(10.dp),
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.SpaceBetween
+                                                        .weight(1f)
+                                                        .padding(horizontal = 5.dp)
                                                 ) {
+                                                    if (text.text.isEmpty())
+                                                        Text(
+                                                            text = "Pencarian",
+                                                            color = Color.Gray,
+                                                            fontSize = 14.sp,
+                                                        )
+                                                    innerTextField()
+                                                }
+                                                if (text.text.length > 0) {
                                                     Icon(
-                                                        imageVector = Icons.Default.Search,
-                                                        contentDescription = "search",
+                                                        imageVector = Icons.Default.Close,
+                                                        contentDescription = "closeIcon",
+                                                        modifier = Modifier.clickable {
+                                                            var reset by mutableStateOf(
+                                                                TextFieldValue("")
+                                                            )
+                                                            text = reset
+                                                            viewModel.search = null
+                                                            viewModel.resetData()
+                                                        },
                                                         tint = Color.Black
                                                     )
-                                                    Box(
-                                                        modifier = Modifier
-                                                            .weight(1f)
-                                                            .padding(horizontal = 5.dp)
-                                                    ) {
-                                                        if (text.text.isEmpty())
-                                                            Text(
-                                                                text = "Pencarian",
-                                                                color = Color.Gray,
-                                                                fontSize = 14.sp,
-                                                            )
-                                                        innerTextField()
-                                                    }
-                                                    if (text.text.length > 0) {
-                                                        Icon(
-                                                            imageVector = Icons.Default.Close,
-                                                            contentDescription = "closeIcon",
-                                                            modifier = Modifier.clickable {
-                                                                var reset by mutableStateOf(
-                                                                    TextFieldValue("")
-                                                                )
-                                                                text = reset
-                                                                viewModel.search = null
-                                                                viewModel.resetData()
-                                                            },
-                                                            tint = Color.Black
-                                                        )
-                                                    }
                                                 }
                                             }
                                         }
-                                    )
-                                }
+                                    }
+                                )
                             }
                         }
-                        var list = data.list
-                        if (list != null) {
-                            if (list.size == 0) {
-                                item(span = { GridItemSpan(3) }) {
-                                    EmptyData(stringResource(R.string.text_data_not_found))
-                                }
-                            } else {
-                                items(count = list.size) { index ->
-                                    var thumbnail = list[index]
-                                    ThumbnailComic(
-                                        data = thumbnail,
-                                        onClick = fun() {
-                                            var image = "-"
-                                            if (thumbnail.imgSrc != null) {
-                                                image =
-                                                    URLEncoder.encode(thumbnail.imgSrc, "UTF-8")
-                                            }
-                                            var url =
-                                                URLEncoder.encode(thumbnail.url!!, "UTF-8")
-                                            navigateToDetail(image, url)
-                                        },
-                                        modifier = modifier
-                                            .fillMaxWidth()
-                                            .animateItemPlacement(tween(durationMillis = 100))
-                                    )
-                                }
-                            }
-                        } else {
+                    }
+                    var list = data.list
+                    if (list != null) {
+                        if (list.size == 0) {
                             item(span = { GridItemSpan(3) }) {
                                 EmptyData(stringResource(R.string.text_data_not_found))
                             }
+                        } else {
+                            items(count = list.size) { index ->
+                                var thumbnail = list[index]
+                                ThumbnailComic(
+                                    data = thumbnail,
+                                    onClick = fun() {
+                                        var image = "-"
+                                        if (thumbnail.imgSrc != null) {
+                                            image =
+                                                URLEncoder.encode(thumbnail.imgSrc, "UTF-8")
+                                        }
+                                        var url =
+                                            URLEncoder.encode(thumbnail.url!!, "UTF-8")
+                                        navigateToDetail(image, url)
+                                    },
+                                    modifier = modifier
+                                        .fillMaxWidth()
+                                        .animateItemPlacement(tween(durationMillis = 100))
+                                )
+                            }
                         }
-                    },
-                    contentPadding = PaddingValues(8.dp),
-                )
-            }
+                    } else {
+                        item(span = { GridItemSpan(3) }) {
+                            EmptyData(stringResource(R.string.text_data_not_found))
+                        }
+                    }
+                },
+                contentPadding = PaddingValues(8.dp),
+            )
             listGridState.OnBottomReached(buffer = 2) {
                 if (!viewModel.isMax) {
                     viewModel.loadMore()
