@@ -73,7 +73,11 @@ fun ThumbnailComic(
         if(isEmpty){
             for(i in 0 .. urls.size-1){
                 if(data.url!!.contains(urls[i],true)){
-                    image = sourceImageNotFounds[i]
+                    if(sourceImageNotFounds[i].contains("http")){
+                        image = sourceImageNotFounds[i]
+                    }else{
+                        image = urls[i]+sourceImageNotFounds[i]
+                    }
                 }
             }
         }
@@ -104,14 +108,16 @@ fun ThumbnailComic(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 0.dp, vertical = 10.dp),
-                text = data.lastChap!!,
-                fontSize = 12.sp,
-                color = Color.White,
-            )
+            if(!data.lastChap.isNullOrBlank()){
+                Text(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 0.dp, vertical = 10.dp),
+                    text = data.lastChap!!,
+                    fontSize = 12.sp,
+                    color = Color.White,
+                )
+            }
         }
     }
 }

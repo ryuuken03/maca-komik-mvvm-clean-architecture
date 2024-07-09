@@ -24,6 +24,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,19 +44,15 @@ import androidx.compose.ui.unit.sp
  * Created By Mohammad Toriq on 19/01/2024
  */
 @Composable
-fun InputTextSearch (
+fun InputText (
     modifier: Modifier? = null,
     textColor: Color = Color.Black,
-    placeholder : String? = null,
-    keyboardType : KeyboardType? = null,
-    search : String?,
-    isValueChangeSearch : Boolean = false,
-    withTop : Boolean = true,
-    onClear :()-> Unit,
-    onSearch :(String)-> Unit
+    placeholder : String,
+    currentText: MutableState<String?>,
+    withTop : Boolean = true
 ){
     val keyboardController = LocalSoftwareKeyboardController.current
-    var text by remember { mutableStateOf(TextFieldValue(search?:"")) }
+    var text by remember { mutableStateOf(TextFieldValue(currentText.value?:"")) }
     val customTextSelectionColors = TextSelectionColors(
         handleColor = Color.Gray,
         backgroundColor = Color.LightGray
@@ -81,13 +78,11 @@ fun InputTextSearch (
             value = text,
             onValueChange = { newText ->
                 text = newText
+                currentText.value = text.text
                 if(newText.text.length == 0){
-                    onClear()
+//                    onClear()
                     keyboardController?.hide()
                 }else{
-                    if(isValueChangeSearch){
-                        onSearch(newText.text)
-                    }
                 }
             },
             textStyle = LocalTextStyle.current.copy(color = textColor),
@@ -95,17 +90,14 @@ fun InputTextSearch (
             singleLine = true,
             modifier = mod,
             keyboardOptions = KeyboardOptions(
-                imeAction = if(isValueChangeSearch) ImeAction.Done else ImeAction.Search,
-                keyboardType = if(keyboardType == null) KeyboardType.Text else keyboardType
+                imeAction = ImeAction.Done,
+                keyboardType = KeyboardType.Text
             ),
-            keyboardActions = KeyboardActions(
-                onSearch = {
-                    if(!isValueChangeSearch){
-                        onSearch(text.text)
-                    }
-                    keyboardController?.hide()
-                }
-            ),
+//            keyboardActions = KeyboardActions(
+//                onSearch = {
+//                    keyboardController?.hide()
+//                }
+//            ),
             decorationBox = { innerTextField ->
                 var modif = Modifier
                     .border(
@@ -123,16 +115,12 @@ fun InputTextSearch (
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "search",
-                            tint =  textColor
-                        )
+
                         Box(modifier = Modifier
                             .weight(1f)
                             .padding(horizontal = 5.dp)){
                             if(text.text.isEmpty())
-                                Text(text = if(placeholder == null)"Pencarian" else placeholder,
+                                Text(text = placeholder,
                                     color = Color.Gray,
                                     fontSize = 14.sp,)
                             innerTextField()
@@ -144,7 +132,7 @@ fun InputTextSearch (
                                 modifier = Modifier.clickable {
                                     var reset by mutableStateOf(TextFieldValue(""))
                                     text = reset
-                                    onClear()
+                                    currentText.value = text.text
                                 },
                                 tint = textColor
                             )

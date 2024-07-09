@@ -18,6 +18,7 @@ import mapan.developer.macakomik.presentation.navigation.screen.BottomBarScreen
 import mapan.developer.macakomik.presentation.navigation.screen.GeneralScreen
 import mapan.developer.macakomik.presentation.read.ReadScreen
 import mapan.developer.macakomik.presentation.setting.SettingScreen
+import mapan.developer.macakomik.presentation.source.SourceScreen
 
 /***
  * Created By Mohammad Toriq on 03/01/2024
@@ -37,8 +38,8 @@ fun MainNavHost(
                 navigateToDetail = {image, url ->
                     navController.navigate(GeneralScreen.DetailScreen.sendData(image,url))
                 },
-                navigateToGenre = { index->
-                    navController.navigate(GeneralScreen.GenreScreen.sendData(index))
+                navigateToGenre = { index, isTheme->
+                    navController.navigate(GeneralScreen.GenreScreen.sendData(index,isTheme))
                 },
                 navigateToList = { index, pathUrl->
                     navController.navigate(GeneralScreen.ListScreen.sendData(index,pathUrl))
@@ -47,8 +48,8 @@ fun MainNavHost(
         }
         composable(BottomBarScreen.History.route) {
             HistoryScreen (
-                navigateToChapter = { title, image, chapter, url , urlDetail->
-                    navController.navigate(GeneralScreen.ReadScreen.sendData(title, image, chapter,url,urlDetail))
+                navigateToChapter = { image, url , urlDetail->
+                    navController.navigate(GeneralScreen.ReadScreen.sendData( image,url,urlDetail))
                 },
             )
         }
@@ -57,13 +58,24 @@ fun MainNavHost(
                 navigateToDetail = {image, url ->
                     navController.navigate(GeneralScreen.DetailScreen.sendData(image,url))
                 },
-                navigateToChapter = { title, image, chapter, url , urlDetail->
-                    navController.navigate(GeneralScreen.ReadScreen.sendData(title, image, chapter,url,urlDetail))
+                navigateToChapter = { image, url , urlDetail->
+                    navController.navigate(GeneralScreen.ReadScreen.sendData( image,url,urlDetail))
+                },
+                navigateToSetting = {
+                    navController.navigate(GeneralScreen.SettingScreen.route)
                 },
             )
         }
-        composable(BottomBarScreen.Setting.route) {
-            SettingScreen()
+//        composable(BottomBarScreen.Setting.route) {
+        composable(GeneralScreen.SettingScreen.route) {
+            SettingScreen(
+                navigateSource = {  ->
+                    navController.navigate(GeneralScreen.SourceScreen.route)
+                },
+                navigateBack = {
+                    navController.navigateUp()
+                },
+            )
         }
 
         composable(
@@ -77,8 +89,8 @@ fun MainNavHost(
                 navigateBack = {
                     navController.navigateUp()
                 },
-                navigateToChapter = { title, image, chapter, url , urlDetail, fromDetail->
-                    navController.navigate(GeneralScreen.ReadScreen.sendData(title, image, chapter,url,urlDetail,fromDetail))
+                navigateToChapter = { image, url , urlDetail, fromDetail->
+                    navController.navigate(GeneralScreen.ReadScreen.sendData( image,url,urlDetail,fromDetail))
                 },
             )
         }
@@ -102,8 +114,10 @@ fun MainNavHost(
             route = GeneralScreen.GenreScreen.route,
         ) {
             var index = it.arguments?.getString("index") ?: "0"
+            var isTheme = it.arguments?.getString("isTheme") ?: "false"
             GenreScreen(
                 index = index.toInt(),
+                isTheme = isTheme.toBoolean(),
                 navigateBack = {
                     navController.navigateUp()
                 },
@@ -115,16 +129,12 @@ fun MainNavHost(
         composable(
             route = GeneralScreen.ReadScreen.route,
         ) {
-            var title = it.arguments?.getString("title") ?: ""
-            var chapter = it.arguments?.getString("chapter") ?: ""
             var image = it.arguments?.getString("image") ?: ""
             var url = it.arguments?.getString("url") ?: ""
             var urlDetail = it.arguments?.getString("urlDetail") ?: ""
             var fromDetail = it.arguments?.getString("fromDetail") ?: "false"
             ReadScreen(
-                title = title,
                 image = image,
-                chapter = chapter,
                 url = url,
                 urlDetail = urlDetail,
                 fromDetail = fromDetail.toBoolean(),
@@ -139,6 +149,13 @@ fun MainNavHost(
                     }
                 },
             )
+        }
+
+        composable(GeneralScreen.SourceScreen.route) {
+            SourceScreen(
+                navigateBack = {
+                    navController.navigateUp()
+                },)
         }
     }
 }

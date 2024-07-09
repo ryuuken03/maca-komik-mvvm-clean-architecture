@@ -2,11 +2,16 @@ package mapan.developer.macakomik.presentation.home
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -14,20 +19,31 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import mapan.developer.macakomik.MainScreen
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.UiState
 import mapan.developer.macakomik.data.model.ComicFilter
+import mapan.developer.macakomik.presentation.component.AdmobBanner
 import mapan.developer.macakomik.presentation.component.ContentSwipeRefresh
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.presentation.component.ProgressLoading
+import mapan.developer.macakomik.presentation.component.SetStatusBarColor
 import mapan.developer.macakomik.presentation.component.dialog.AlertDialogSource
 import mapan.developer.macakomik.presentation.component.toolbar.ToolbarHome
 import mapan.developer.macakomik.presentation.home.section.HomeContent
+import mapan.developer.macakomik.presentation.navigation.screen.GeneralScreen
 import mapan.developer.macakomik.ui.theme.GrayDarker
+import mapan.developer.macakomik.ui.theme.MACAKomikTheme
+import mapan.developer.macakomik.util.Constants
 
 /***
  * Created By Mohammad Toriq on 03/01/2024
@@ -37,20 +53,24 @@ import mapan.developer.macakomik.ui.theme.GrayDarker
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     navigateToDetail: (String,String) -> Unit,
-    navigateToGenre: (Int) -> Unit,
+    navigateToGenre: (Int,Boolean) -> Unit,
     navigateToList: (Int,String) -> Unit,
 ) {
     val context = LocalContext.current
     val showDialog =  remember { mutableStateOf(false) }
     val title by viewModel.title.collectAsStateWithLifecycle()
     val canBrowse by viewModel.canBrowse.collectAsStateWithLifecycle()
+    val sources by viewModel.sourceFBState.collectAsStateWithLifecycle()
     if(showDialog.value){
         if(canBrowse){
             AlertDialogSource(
                 showDialog = showDialog,
                 selectedIndex = viewModel.index,
-                setAction = { index ->
-                    viewModel.setIndexSource(index)
+                sources = sources,
+//                setAction = { index ->
+                setAction = { data ->
+//                    viewModel.setIndexSource(index)
+                    viewModel.setSourceUrl(data)
                 }
             )
         }else{
@@ -68,7 +88,6 @@ fun HomeScreen(
                     showDialog.value = true
                 })
         },
-
         content = {
             Box(
                 contentAlignment = Alignment.Center,
@@ -77,57 +96,88 @@ fun HomeScreen(
                     .background(GrayDarker)
                     .padding(it)
             ) {
-                ContentSwipeRefresh(
-                    modifier = Modifier,
-                    onRefresh = {
-                        viewModel.setLoading()
-                    },
-                    content = {
-                        viewModel.uiState.collectAsState(initial = UiState.Loading()).value.let { uiState ->
-                            when (uiState) {
-                                is UiState.Loading -> {
-                                    ProgressLoading()
-                                    viewModel.getBrowse()
-                                }
-                                is UiState.Success -> {
-                                    if(uiState.data == null){
-                                        EmptyData(message = stringResource(R.string.text_data_not_found))
-                                    }else{
-                                        viewModel.uiGenreState
-                                            .collectAsState(initial = UiState.Loading())
-                                            .value.let{ uiGenreState ->
-                                                var genres = ArrayList<ComicFilter>()
-                                                when (uiState) {
-                                                    is UiState.Loading -> {
-                                                    }
-                                                    is UiState.Success -> {
-                                                        uiGenreState.data?.forEach {
-                                                            genres.add(it)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.Center
+                ){
+                    var top = 0.dp
+//                    if(Constants.IS_PRODUCTION){
+//                        top = 10.dp
+//                        AdmobBanner(
+//                            modifier = Modifier.fillMaxWidth())
+//                    }
+                    ContentSwipeRefresh(
+                        modifier = Modifier.padding(top = top),
+                        onRefresh = {
+                            viewModel.setLoading()
+                        },
+                        content = {
+                            viewModel.uiState.collectAsState(initial = UiState.Loading()).value.let { uiState ->
+                                when (uiState) {
+                                    is UiState.Loading -> {
+                                        ProgressLoading()
+                                        viewModel.getBrowse()
+                                    }
+                                    is UiState.Success -> {
+                                        if(uiState.data == null){
+                                            EmptyData(message = stringResource(R.string.text_data_not_found))
+                                        }else{
+                                            viewModel.uiGenreState
+                                                .collectAsState(initial = UiState.Loading())
+                                                .value.let{ uiGenreState ->
+                                                    var genres = ArrayList<ComicFilter>()
+                                                    var themes = ArrayList<ComicFilter>()
+                                                    when (uiState) {
+                                                        is UiState.Loading -> {
+                                                        }
+                                                        is UiState.Success -> {
+                                                            uiGenreState.data?.forEach {
+                                                                genres.add(it)
+                                                            }
+                                                        }
+                                                        is UiState.Error -> {
                                                         }
                                                     }
-                                                    is UiState.Error -> {
-                                                    }
+                                                    viewModel.uiThemeState
+                                                        .collectAsState(initial = UiState.Loading())
+                                                        .value.let{ uiThemeState ->
+                                                            when (uiState) {
+                                                                is UiState.Loading -> {
+                                                                }
+                                                                is UiState.Success -> {
+                                                                    uiThemeState.data?.forEach {
+                                                                        themes.add(it)
+                                                                    }
+                                                                }
+                                                                is UiState.Error -> {
+                                                                }
+                                                            }
+                                                        }
+                                                    HomeContent(
+                                                        modifier = Modifier,
+                                                        data = uiState.data,
+                                                        genres = genres,
+                                                        themes = themes,
+                                                        viewModel = viewModel,
+                                                        navigateToDetail = navigateToDetail,
+                                                        navigateToGenre = navigateToGenre,
+                                                        navigateToList = navigateToList
+                                                    )
                                                 }
-                                                HomeContent(
-                                                    modifier = Modifier,
-                                                    data = uiState.data,
-                                                    genres = genres,
-                                                    viewModel = viewModel,
-                                                    navigateToDetail = navigateToDetail,
-                                                    navigateToGenre = navigateToGenre,
-                                                    navigateToList = navigateToList
-                                                )
-                                            }
+                                        }
                                     }
-                                }
-                                is UiState.Error -> {
-                                    EmptyData(message = uiState.message!!)
+                                    is UiState.Error -> {
+                                        EmptyData(message = uiState.message!!)
+                                    }
                                 }
                             }
                         }
-                    }
-                )
+                    )
+                }
+
             }
+
         }
     )
 }

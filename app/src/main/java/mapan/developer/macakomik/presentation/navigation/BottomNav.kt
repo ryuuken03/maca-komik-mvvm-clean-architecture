@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,10 +31,12 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import mapan.developer.macakomik.presentation.component.AdmobBanner
 import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.navigation.screen.BottomBar
 import mapan.developer.macakomik.presentation.navigation.screen.BottomBarScreen
 import mapan.developer.macakomik.ui.theme.GrayDarker
+import mapan.developer.macakomik.util.Constants
 
 /***
  * Created By Mohammad Toriq on 03/01/2024
@@ -75,26 +78,31 @@ fun BottomBar(
     navigationItemContentList: List<BottomBar>,
     currentDestination: NavDestination?
 ) {
-    Box (modifier = modifier
+//    Column (modifier = modifier
+//        .fillMaxWidth()
+//        .background(Color.Black)){
+
+        Box (modifier = modifier
             .fillMaxWidth()
             .background(Color.Black)
-    ){
-        Row(
-            modifier = modifier
-                .padding(start = 0.dp, end = 0.dp, top = 10.dp, bottom = 10.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            navigationItemContentList.forEach { screen ->
-                BottomNavItem(
-                    screen = screen,
-                    currentDestination = currentDestination,
-                    navController = navController
-                )
+        ){
+            Row(
+                modifier = modifier
+                    .padding(start = 0.dp, end = 0.dp, top = 10.dp, bottom = 10.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                navigationItemContentList.forEach { screen ->
+                    BottomNavItem(
+                        screen = screen,
+                        currentDestination = currentDestination,
+                        navController = navController
+                    )
+                }
             }
         }
-    }
+//    }
 }
 @Composable
 fun BottomNavItem(
@@ -111,8 +119,8 @@ fun BottomNavItem(
             .height(42.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(background)
-            .noRippleClickable (onClick = {
-                if(!selected){
+            .noRippleClickable(onClick = {
+                if (!selected) {
                     navController.navigate(screen.route) {
                         popUpTo(navController.graph.findStartDestination().id)
                         launchSingleTop = true

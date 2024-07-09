@@ -14,7 +14,6 @@ class RequestInterceptor : Interceptor {
             .build()
         val request = originalRequest.newBuilder()
             .url(newUrl)
-//            .addHeader("Authorization","bearer "+APIService.TOKEN)
             .addHeader("lulThings","iyainiyainiyainde123")
             .build()
         return chain.proceed(request)

@@ -6,15 +6,15 @@ import okhttp3.Response
 /***
  * Created By Mohammad Toriq on 11/01/2024
  */
-class RequestInterceptor : Interceptor {
+class RequestInterceptorGoogleSheets : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         val newUrl = originalRequest.url
             .newBuilder()
+            .addQueryParameter("key",GoogleSheetsApiService.KEY)
             .build()
         val request = originalRequest.newBuilder()
             .url(newUrl)
-            .addHeader("lulThings","iyainiyainiyainde123")
             .build()
         return chain.proceed(request)
     }

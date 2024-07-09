@@ -1,9 +1,13 @@
-package mapan.developer.macakomik.presentation.setting
+package mapan.developer.macakomik.presentation.source
 
 import android.content.Context
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.toObjects
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -12,7 +16,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.UiState
+import mapan.developer.macakomik.data.datasource.remote.model.SourceFB
 import mapan.developer.macakomik.domain.usecase.setting.BackupDataDB
 import mapan.developer.macakomik.domain.usecase.setting.RestoreDataDB
 import javax.inject.Inject
@@ -21,73 +27,58 @@ import javax.inject.Inject
  * Created By Mohammad Toriq on 01/02/2024
  */
 @HiltViewModel
-class SettingViewModel @Inject constructor(
+class SourceViewModel @Inject constructor(
     @ApplicationContext var mContext: Context,
-    private val backupDataDB: BackupDataDB,
-    private val restoreDataDB: RestoreDataDB,
 ) : ViewModel(){
-    private val _versionName = MutableStateFlow("")
-    val versionName = _versionName.asStateFlow()
 
-    private val _stillBackup = MutableStateFlow(false)
-    val stillBackup = _stillBackup.asStateFlow()
+    private var _sourceFBState = MutableStateFlow<List<SourceFB>>(emptyList())
+    val sourceFBState = _sourceFBState.asStateFlow()
 
-    private val _stillRestore = MutableStateFlow(false)
-    val stillRestore = _stillRestore.asStateFlow()
-
-    private val _messageToast = MutableStateFlow("")
-    val messageToast = _messageToast.asStateFlow()
+    var sources = mContext.resources.getStringArray(R.array.source_website_url)
+    var sourceTitles = mContext.resources.getStringArray(R.array.source_website_title)
 
     init {
-        try {
-            _versionName.value = mContext.getPackageManager()
-                .getPackageInfo(mContext.getPackageName(), 0).versionName
-        } catch (e: PackageManager.NameNotFoundException) {
-            e.printStackTrace()
-        }
+        getFromFirebase()
     }
 
-    fun resetMessageToast(){
-        _messageToast.value = ""
-    }
+    fun getFromFirebase(){
+        var db = Firebase.firestore
 
-    fun backupOffline(){
-        _stillBackup.value = true
-        CoroutineScope(Dispatchers.IO).launch {
-            backupDataDB.execute(Unit)
-            .catch {
-                _stillBackup.value = false
-                _messageToast.value = it.message.toString()
-            }
-            .collect {
-                _stillBackup.value = false
-                if(it == 0){
-                    _messageToast.value = "Gagal Backup Data"
-                }else{
-                    _messageToast.value = "Backup Data Telah Sukses"
+        val data = db.collection("source")
+        data.orderBy("id", Query.Direction.ASCENDING)
+            .addSnapshotListener { value, error ->
+                if(error != null){
+                    return@addSnapshotListener
+                }
+
+                if(value != null){
+                    _sourceFBState.value = value.toObjects()
+                    if(_sourceFBState.value.size == 0){
+                        val source = db.collection("source")
+                        for(i in 0 .. sources.size-1){
+                            var set = SourceFB()
+                            set.id = (i+1).toLong()
+                            set.title = sourceTitles[i]
+                            set.url = sources[i]
+                            source.document(i.toString()).set(set)
+                        }
+                    }
                 }
             }
-        }
     }
 
-    fun restoreOffline(){
-        _stillRestore.value = true
-        CoroutineScope(Dispatchers.IO).launch {
-            restoreDataDB.execute(true)
-            .catch {
-                _stillRestore.value = false
-                _messageToast.value = it.message.toString()
+//    fun updateSource(index:Int){
+    fun updateSource(update:SourceFB){
+        var db = Firebase.firestore
+
+        val doc = db.collection("source").document((update.id!!-1).toString())
+
+        doc.set(update)
+            .addOnSuccessListener {
+                _sourceFBState.value = emptyList()
+                getFromFirebase()
             }
-            .collect {
-                _stillRestore.value = false
-                if(it == -1){
-                    _messageToast.value = "Anda tidak memiliki Data Backup"
-                }else if(it == 0){
-                    _messageToast.value = "Gagal Restore Data"
-                }else{
-                    _messageToast.value = "Restore Data Telah Sukses"
-                }
+            .addOnFailureListener { e ->
             }
-        }
     }
 }

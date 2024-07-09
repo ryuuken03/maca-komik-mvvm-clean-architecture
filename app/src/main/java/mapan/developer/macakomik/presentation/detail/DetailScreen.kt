@@ -59,7 +59,7 @@ fun DetailScreen(
     url :String,
     viewModel: DetailViewModel = hiltViewModel(),
     navigateBack: () -> Unit,
-    navigateToChapter: (String,String,String,String,String,Boolean) -> Unit,
+    navigateToChapter: (String,String,String,Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     val isAdded by viewModel.isAddedBookmark.collectAsStateWithLifecycle()

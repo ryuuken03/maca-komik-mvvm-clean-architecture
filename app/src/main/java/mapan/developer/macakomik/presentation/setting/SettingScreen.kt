@@ -36,6 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.component.toolbar.ToolbarCenter
+import mapan.developer.macakomik.presentation.component.toolbar.ToolbarDefault
 import mapan.developer.macakomik.ui.theme.Gray200Transparant
 import mapan.developer.macakomik.ui.theme.GrayDarker
 
@@ -46,7 +47,9 @@ import mapan.developer.macakomik.ui.theme.GrayDarker
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen (
-    viewModel: SettingViewModel = hiltViewModel()
+    viewModel: SettingViewModel = hiltViewModel(),
+    navigateSource: () -> Unit,
+    navigateBack: () -> Unit,
 ){
     val context = LocalContext.current
     val versionName by viewModel.versionName.collectAsStateWithLifecycle()
@@ -59,12 +62,17 @@ fun SettingScreen (
     }
     Scaffold(
         topBar ={
-            ToolbarCenter(
+//            ToolbarCenter(
+//                title = "Pengaturan",
+//                fontSize = 16.sp,
+//                withAds = false
+//            )
+            ToolbarDefault(
                 title = "Pengaturan",
-                fontSize = 16.sp
+                withAds = false,
+                navigateBack = navigateBack
             )
         },
-
         content = {
             Box(
                 contentAlignment = Alignment.Center,
@@ -83,7 +91,7 @@ fun SettingScreen (
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(
-                                top = 20.dp,
+                                top = 5.dp,
                                 start = 10.dp,
                                 bottom = 10.dp,
                                 end = 10.dp
@@ -282,7 +290,7 @@ fun SettingScreen (
                                 end = 20.dp
                             ).noRippleClickable {
                                 if(!stillBackup){
-                                    viewModel.backupOffline()
+//                                    viewModel.backupOffline()
                                 }else{
                                     var message = context.getString(R.string.text_please_waiting)
                                     Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
@@ -308,7 +316,7 @@ fun SettingScreen (
                                 end = 20.dp
                             ).noRippleClickable {
                                 if(!stillRestore){
-                                    viewModel.restoreOffline()
+//                                    viewModel.restoreOffline()
                                 }else{
                                     var message = context.getString(R.string.text_please_waiting)
                                     Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
@@ -375,7 +383,36 @@ fun SettingScreen (
                             modifier = Modifier
                                 .padding(horizontal = 0.dp, vertical = 5.dp))
                     }
-                }
+//                    if(!versionName.equals("")){
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    top = 10.dp,
+                                    start = 20.dp,
+                                    bottom = 10.dp,
+                                    end = 20.dp
+                                )
+                                .noRippleClickable {
+                                   navigateSource()
+                                },
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ){
+                            Text(
+                                text = "Source Website",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White,
+                                modifier = Modifier.weight(1f,false)
+                            )
+                        }
+                        Divider(
+                            color = Gray200Transparant,
+                            thickness = 0.dp,
+                            modifier = Modifier
+                                .padding(horizontal = 0.dp, vertical = 5.dp))
+                    }
+//                }
             }
         }
     )

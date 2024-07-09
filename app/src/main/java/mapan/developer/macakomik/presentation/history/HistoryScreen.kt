@@ -48,7 +48,7 @@ import mapan.developer.macakomik.ui.theme.GrayDarker
 @Composable
 fun HistoryScreen(
     viewModel: HistoryViewModel = hiltViewModel(),
-    navigateToChapter: (String,String,String,String,String) -> Unit,
+    navigateToChapter: (String,String,String) -> Unit,
 ) {
     val showDialog =  remember { mutableStateOf(false) }
     val hideAction =  remember { mutableStateOf(false) }

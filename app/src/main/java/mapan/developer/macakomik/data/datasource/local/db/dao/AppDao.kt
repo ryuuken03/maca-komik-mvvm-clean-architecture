@@ -16,10 +16,10 @@ interface AppDao {
     @Query("SELECT * FROM ComicSaveEntity ORDER By id DESC")
     fun getListComicSave(): MutableList<ComicSaveEntity>
 
-    @Query("SELECT * FROM ComicSaveEntity WHERE urlDetail LIKE '%' || :url || '%'")
+    @Query("SELECT * FROM ComicSaveEntity WHERE urlDetail LIKE '%' || :url || '%' ORDER By id DESC")
     fun getComicSave(url : String): ComicSaveEntity
 
-    @Query("SELECT * FROM ComicSaveEntity WHERE title LIKE '%' || :search || '%'")
+    @Query("SELECT * FROM ComicSaveEntity WHERE title LIKE '%' || :search || '%' ORDER By id DESC")
     fun getSearchListComicSave(search : String): MutableList<ComicSaveEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -31,10 +31,10 @@ interface AppDao {
     @Query("SELECT * FROM ComicHistoryEntity ORDER By id DESC")
     fun getListComicHistory(): MutableList<ComicHistoryEntity>
 
-    @Query("SELECT * FROM ComicHistoryEntity WHERE urlDetail LIKE '%' || :url || '%' ")
+    @Query("SELECT * FROM ComicHistoryEntity WHERE urlDetail LIKE '%' || :url || '%' ORDER By id DESC")
     fun getComicHistory(url : String): ComicHistoryEntity
 
-    @Query("SELECT * FROM ComicHistoryEntity WHERE title LIKE '%' || :search || '%'")
+    @Query("SELECT * FROM ComicHistoryEntity WHERE title LIKE '%' || :search || '%' ORDER By id DESC")
     fun getSearchListComicHistory(search : String): MutableList<ComicHistoryEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -45,4 +45,8 @@ interface AppDao {
 
     @Query("DELETE FROM ComicHistoryEntity")
     fun deleteAllComicHistory()
+//    @Query("SELECT * FROM SourceEntity ORDER By id ASC")
+//    fun getListSourceFB(): MutableList<SourceEntity>
+//    @Insert(onConflict = OnConflictStrategy.IGNORE)
+//    fun insertSourceFB(source: SourceEntity)
 }

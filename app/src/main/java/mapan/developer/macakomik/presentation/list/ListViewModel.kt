@@ -1,6 +1,7 @@
 package mapan.developer.macakomik.presentation.list
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -8,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import mapan.developer.macakomik.data.UiState
@@ -39,6 +41,7 @@ class ListViewModel @Inject constructor(
     var icon = -1
     var url = ""
     var genre = ""
+    var theme = ""
     var type = ""
     var orderby = ""
     var search:String? = null
@@ -46,6 +49,9 @@ class ListViewModel @Inject constructor(
     var isMax = false
     var stillLoad = false
     var pathUrl = "-"
+    var canFilter = false
+    private val _hasFilter = MutableStateFlow(false)
+    val hasFilter = _hasFilter.asStateFlow()
 
     var listComic =  ArrayList<ComicThumbnail>()
 
@@ -54,11 +60,15 @@ class ListViewModel @Inject constructor(
         pathUrl = path
         title = appName+ " " +titles[index]
         if(!path.equals("-")){
-            if(pathUrl.contains("project")||pathUrl.contains("pj")){
+            if(pathUrl.contains("project")||pathUrl.contains("pj")||pathUrl.contains("komik-populer")){
                 title = "Proyek "+titles[index]
-            }else if(path.contains("genre")){
+                if(path.contains("komik-populer")){
+                    title = "Populer "+titles[index]
+                }
+            }else if(path.contains("genre") || path.contains("tema") ||path.contains("konten")){
                 var split = path.split("/")
-                title ="Genre "
+//                title ="Genre "
+                title =split[0].replaceFirstChar(Char::titlecase) +" "
                 if(split.size > 0) {
                     var genre = split[1].split("-")
                     genre.forEach {
@@ -69,13 +79,27 @@ class ListViewModel @Inject constructor(
             }
         }
         when(index){
-            0 -> { icon = R.drawable.ic_src_komikcast }
+            0 -> { icon = R.drawable.ic_src_komikindo }
             1 -> { icon = R.drawable.ic_src_westmanga }
             2 -> { icon = R.drawable.ic_src_ngomik }
             3 -> { icon = R.drawable.ic_src_shinigami }
+            4 -> { icon = R.drawable.ic_src_komikcast }
             else -> { icon = -1 }
         }
         changeUrl()
+    }
+
+    fun setFilter(g : String, t : String, o : String, th : String){
+        genre = g
+        theme = th
+        type = t
+        orderby = o
+        if(!genre.equals("")||!theme.equals("")||!type.equals("")||!orderby.equals("")){
+            _hasFilter.value = true
+        }else{
+            _hasFilter.value = false
+        }
+        resetData()
     }
 
     fun changeUrl(){
@@ -83,8 +107,13 @@ class ListViewModel @Inject constructor(
         //typeList = 1 -> By Genre
         //else -> normal or search
         url = sources[index]
+//        if(index != 3 && index !=4){
+//        if(index < 3){
+        if(index == 1 || index == 2 || index == 4){
+            canFilter = true
+        }
         when(index){
-            0 ->{
+            4 ->{
                 if(!pathUrl.equals("-")){
                     url+= pathUrl+"/page/"+page.toString()
                 }else{
@@ -117,6 +146,17 @@ class ListViewModel @Inject constructor(
                     }
                 }
             }
+            0 ->{
+                if(!pathUrl.equals("-")){
+                    url+= pathUrl+"/page/"+page.toString()
+                }else{
+                    if(search!=null){
+                        url+= "page/"+page.toString()+"/?s="+search
+                    }else{
+                        url+= "komik-terbaru/page"+page+"/?"+getOtherQuery()
+                    }
+                }
+            }
             else ->{
                 url = sources[index]
             }
@@ -127,40 +167,86 @@ class ListViewModel @Inject constructor(
         var result = ""
         if(index != 3){
             when(index){
-                0 ->{
+                4 ->{
                     result = "?"
                     if(genre.equals("") && type.equals("") && orderby.equals("")){
                         result += "sortby=update"
                     }else{
                         if(!genre.equals("")){
-                            result += "genre%5B%5D="+genre + "&"
+                            result += genre
                         }
                         result += "status="
                         result += "&type="
                         if(!type.equals("")){
                             result += type
                         }
-                        result += "&orderby="
-                        if(!orderby.equals("")){
-                            if(orderby.equals("update")){
-                                result.replace("orderby","sortby")
-                            }
-                            result += orderby
+                        if(orderby.equals("update")){
+                            result += "&sortby="
+                        }else{
+                            result += "&orderby="
                         }
+                        result += orderby
                     }
                 }
                 1 ->{
                     if(genre.equals("") && type.equals("") && orderby.equals("")){
                         result += "order=update"
                     }else{
-
+                        if(!genre.equals("")){
+                            result += genre
+                        }
+                        result += "status="
+                        result += "&type="
+                        if(!type.equals("")){
+                            result += type
+                        }
+                        result += "&order="
+                        if(!orderby.equals("")){
+                            result += orderby
+                        }
                     }
                 }
                 2 ->{
                     if(genre.equals("") && type.equals("") && orderby.equals("")){
                         result += "order=update"
                     }else{
-
+                        if(!genre.equals("")){
+                            result += genre
+                        }
+                        result += "status="
+                        result += "&type="
+                        if(!type.equals("")){
+                            result += type
+                        }
+                        result += "&order="
+                        if(!orderby.equals("")){
+                            result += orderby
+                        }
+                    }
+                }
+                0->{
+                    if(genre.equals("") && theme.equals("") && type.equals("") && orderby.equals("")){
+//                        result += "order=update"
+                        result += "status&type&format&order=update&title"
+                    }else{
+                        if(!genre.equals("")){
+                            result += genre
+                        }
+                        result += "tema="
+                        if(!theme.equals("")){
+                            result += theme
+                        }
+                        result += "status="
+                        result += "&type="
+                        if(!type.equals("")){
+                            result += type
+                        }
+                        result += "&format=0"
+                        result += "&order="
+                        if(!orderby.equals("")){
+                            result += orderby
+                        }
+                        result += "&title="
                     }
                 }
             }
@@ -181,6 +267,16 @@ class ListViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun searching (s:String?){
+        search = s
+        genre = ""
+        theme = ""
+        type = ""
+        orderby = ""
+        _hasFilter.value = false
+        resetData()
     }
 
     fun resetData(){
@@ -215,6 +311,16 @@ class ListViewModel @Inject constructor(
                         _uiState.value = UiState.Success(response)
                     }
             } catch (e: Exception) {
+//                if(index == 0){
+                if(index == 4){
+                    if(url.contains("daftar-komik") && url.contains("?")){
+                        if(page == 0){
+                            canFilter = false
+                            url+= "daftar-komik/page/"+page.toString()
+                            getList()
+                        }
+                    }
+                }
                 _uiState.value = UiState.Error(e.message.toString())
             }
         }

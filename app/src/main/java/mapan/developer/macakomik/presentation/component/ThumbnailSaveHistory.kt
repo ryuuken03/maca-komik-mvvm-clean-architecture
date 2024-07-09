@@ -164,15 +164,20 @@ fun ThumbnailSaveHistory(
             }
         }
         if(save !=null){
-            Icon(
-                painter = painterResource(R.drawable.baseline_delete_24),
-                contentDescription = "delete",
-                tint = Color.White,
+            Box(
                 modifier = Modifier
-                    .padding(20.dp)
+                    .padding(5.dp)
                     .noRippleClickable(onDelete)
                     .align(Alignment.BottomEnd)
-            )
+            ){
+                Icon(
+                    painter = painterResource(R.drawable.baseline_delete_24),
+                    contentDescription = "delete",
+                    tint = Color.White,
+                    modifier = Modifier
+                        .padding(20.dp)
+                )
+            }
         }
     }
 }

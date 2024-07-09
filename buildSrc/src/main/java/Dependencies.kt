@@ -6,6 +6,7 @@ object Version{
     const val core = "1.9.0"
     const val appcompat = "1.6.1"
     const val androidMaterial = "1.11.0"
+    const val coreSplashscreen = "1.0.1"
 
     const val coroutinesLifecycleScope = "2.6.2"
 
@@ -35,12 +36,14 @@ object Version{
 
     const val jsoup = "1.17.2"
     const val firebase = "32.7.1"
+    const val admob = "22.6.0"
 }
 
 object Deps{
     const val core = "androidx.core:core-ktx:${Version.core}"
     const val appcompat = "androidx.appcompat:appcompat:${Version.appcompat}"
     const val androidMaterial = "com.google.android.material:material:${Version.androidMaterial}"
+    const val coreSplashscreen = "androidx.core:core-splashscreen:${Version.coreSplashscreen}"
 }
 
 object CoroutinesLifecycleScope{
@@ -110,4 +113,7 @@ object Jsoup{
 object FirebaseDEP{
     const val firebaseBom = "com.google.firebase:firebase-bom:${Version.firebase}"
     const val firestore = "com.google.firebase:firebase-firestore"
+}
+object Admob{
+    const val admob = "com.google.android.gms:play-services-ads:${Version.admob}"
 }

@@ -1,4 +1,5 @@
 package mapan.developer.macakomik.presentation.component.dialog
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import mapan.developer.macakomik.ui.theme.GrayDarker
 import mapan.developer.macakomik.R
+import mapan.developer.macakomik.data.datasource.remote.model.SourceFB
 import mapan.developer.macakomik.presentation.component.NoRippleInteractionSource
 
 /***
@@ -49,12 +51,14 @@ import mapan.developer.macakomik.presentation.component.NoRippleInteractionSourc
 fun AlertDialogSource(
     showDialog: MutableState<Boolean>,
     selectedIndex: Int,
-    setAction: (Int) -> Unit) {
+    sources:List<SourceFB>,
+//    setAction: (Int) -> Unit) {
+    setAction: (SourceFB) -> Unit) {
     val index =  remember { mutableStateOf(selectedIndex) }
 
     Dialog(onDismissRequest = { showDialog.value = false }) {
         val context = LocalContext.current
-        var sourceTitles = context.resources.getStringArray(R.array.source_website_title)
+//        var sourceTitles = context.resources.getStringArray(R.array.source_website_title)
 
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -89,15 +93,29 @@ fun AlertDialogSource(
                     }
 
                     Spacer(modifier = Modifier.height(20.dp))
-                    for(i in 0 .. sourceTitles.size-1){
+                    for(i in 0 .. sources.size-1){
 //                        if(index.value != i){
+                            var title = sources[i].title!!
                             var icon = R.drawable.ic_src_komikcast
-                            when(i){
-                                0 -> { icon = R.drawable.ic_src_komikcast}
-                                1 -> { icon = R.drawable.ic_src_westmanga}
-                                2 -> { icon = R.drawable.ic_src_ngomik}
-                                3 -> { icon = R.drawable.ic_src_shinigami}
+//                            Log.d("OkCheck title",title+":"+"komikcast:"+title.equals("komikcast",true))
+                            if(title.contains("komikcast",true)){
+                                icon = R.drawable.ic_src_komikcast
+                            }else if(title.contains("westmanga",true)){
+                                icon = R.drawable.ic_src_westmanga
+                            }else if(title.contains("ngomik",true)){
+                                icon = R.drawable.ic_src_ngomik
+                            }else if(title.contains("shinigami",true)){
+                                icon = R.drawable.ic_src_shinigami
+                            }else if(title.contains("komikindo",true)){
+                                icon = R.drawable.ic_src_komikindo
                             }
+//                            when(i){
+//                                0 -> { icon = R.drawable.ic_src_komikindo}
+//                                1 -> { icon = R.drawable.ic_src_westmanga}
+//                                2 -> { icon = R.drawable.ic_src_ngomik}
+//                                3 -> { icon = R.drawable.ic_src_shinigami}
+//                                4 -> { icon = R.drawable.ic_src_komikcast}
+//                            }
                             OutlinedButton(
                                 modifier = Modifier
                                     .padding(all = 5.dp),
@@ -108,7 +126,7 @@ fun AlertDialogSource(
                                 onClick = {
                                     if(index.value == i){
                                     }else{
-                                        setAction(i)
+                                        setAction(sources[i])
                                         index.value = i
                                         showDialog.value = false
                                     }
@@ -134,7 +152,7 @@ fun AlertDialogSource(
                                     Text(
                                         modifier = Modifier
                                             .weight(2f,true),
-                                        text = sourceTitles[i],
+                                        text = title,
                                         color = GrayDarker,
                                         textAlign = TextAlign.Start
                                     )
@@ -149,15 +167,14 @@ fun AlertDialogSource(
                                         onClick = {
                                             if(index.value == i){
                                             }else{
-                                                setAction(i)
+                                                setAction(sources[i])
                                                 index.value = i
                                                 showDialog.value = false
                                             }
                                         },
                                     )
                                 }
-//                            }
-                        }
+                            }
                     }
                 }
             }

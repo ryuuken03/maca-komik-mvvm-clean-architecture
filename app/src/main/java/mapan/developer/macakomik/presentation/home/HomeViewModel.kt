@@ -1,7 +1,12 @@
 package mapan.developer.macakomik.presentation.home
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.toObjects
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -15,10 +20,12 @@ import mapan.developer.macakomik.data.UiState
 import mapan.developer.macakomik.data.model.ComicHome
 import mapan.developer.macakomik.domain.usecase.home.GetHome
 import mapan.developer.macakomik.R
+import mapan.developer.macakomik.data.datasource.remote.model.SourceFB
 import mapan.developer.macakomik.data.model.ComicFilter
 import mapan.developer.macakomik.domain.usecase.genre.GetGenre
 import mapan.developer.macakomik.domain.usecase.home.GetComicSource
 import mapan.developer.macakomik.domain.usecase.home.UpdateComicSource
+import mapan.developer.macakomik.util.Constants
 import javax.inject.Inject
 
 /***
@@ -38,11 +45,17 @@ class HomeViewModel @Inject constructor(
     private val _uiGenreState: MutableStateFlow<UiState<ArrayList<ComicFilter>>> = MutableStateFlow(UiState.Loading())
     val uiGenreState: StateFlow<UiState<ArrayList<ComicFilter>>> = _uiGenreState
 
+    private val _uiThemeState: MutableStateFlow<UiState<ArrayList<ComicFilter>>> = MutableStateFlow(UiState.Loading())
+    val uiThemeState: StateFlow<UiState<ArrayList<ComicFilter>>> = _uiThemeState
+
     var sources = mContext.resources.getStringArray(R.array.source_website_url)
     var sourceTitles = mContext.resources.getStringArray(R.array.source_website_title)
 
+    private var _sourceFBState = MutableStateFlow<List<SourceFB>>(emptyList())
+    val sourceFBState = _sourceFBState.asStateFlow()
+
     var index = 0
-    var url = sources[index]
+    var url = ""
     var appName = mContext.resources.getString(R.string.app_name2)
 
     private val _title = MutableStateFlow("")
@@ -53,15 +66,17 @@ class HomeViewModel @Inject constructor(
 
     init {
         getSource()
+        getFromFirebase()
     }
 
     fun getIcon() : Int{
         var icon = 0
         when(index){
-            0 -> { icon = R.drawable.ic_src_komikcast }
+            0 -> { icon = R.drawable.ic_src_komikindo }
             1 -> { icon = R.drawable.ic_src_westmanga }
             2 -> { icon = R.drawable.ic_src_ngomik }
             3 -> { icon = R.drawable.ic_src_shinigami }
+            4 -> { icon = R.drawable.ic_src_komikcast }
             else -> { icon = -1 }
         }
         return icon
@@ -75,38 +90,64 @@ class HomeViewModel @Inject constructor(
             addSource()
         }
     }
+
+    fun setSourceUrl(data : SourceFB){
+        if(canBrowse.value){
+            index = (data.id!!-1).toInt()
+            url = data.url!!
+            _title.value = appName+" "+data.title
+            setLoading()
+            addSource()
+        }
+    }
     fun setLoading(){
         _uiState.value = UiState.Loading()
     }
 
     fun getBrowse(){
-        if(canBrowse.value){
-            _canBrowse.value = false
-            CoroutineScope(Dispatchers.IO).launch {
-                try {
-                    getGenre.execute(getGenreUrl())
-                        .catch {
-                            _uiGenreState.value = UiState.Error(it.message.toString())
+        if(!url.equals("")){
+            if(canBrowse.value){
+                _canBrowse.value = false
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        getGenre.execute(getGenreUrl())
+                            .catch {
+                                _uiGenreState.value = UiState.Error(it.message.toString())
+                            }
+                            .collect { list ->
+                                _uiGenreState.value = UiState.Success(list)
+                            }
+                    } catch (e: Exception) {
+                        _uiGenreState.value = UiState.Error(e.message.toString())
+                    }
+//                if(index == 4){
+                    if(index == 0){
+                        var listThemes = ArrayList<ComicFilter>()
+                        var themes = Constants.getThemes(index)
+                        themes.forEach {
+                            var filter = ComicFilter()
+                            filter.name = it
+                            filter.value = it.lowercase().replace(" ","-")
+                            listThemes.add(filter)
                         }
-                        .collect { list ->
-                            _uiGenreState.value = UiState.Success(list)
-                        }
-                } catch (e: Exception) {
-                    _uiGenreState.value = UiState.Error(e.message.toString())
-                }
-                try {
-                    getHome.execute(url)
-                        .catch {
-                            _canBrowse.value = true
-                            _uiState.value = UiState.Error(it.message.toString())
-                        }
-                        .collect { comicHome ->
-                            _canBrowse.value = true
-                            _uiState.value = UiState.Success(comicHome)
-                        }
-                } catch (e: Exception) {
-                    _canBrowse.value = true
-                    _uiState.value = UiState.Error(e.message.toString())
+                        _uiThemeState.value = UiState.Success(listThemes)
+                    }else{
+                        _uiThemeState.value = UiState.Success(arrayListOf())
+                    }
+                    try {
+                        getHome.execute(url)
+                            .catch {
+                                _canBrowse.value = true
+                                _uiState.value = UiState.Error(it.message.toString())
+                            }
+                            .collect { comicHome ->
+                                _canBrowse.value = true
+                                _uiState.value = UiState.Success(comicHome)
+                            }
+                    } catch (e: Exception) {
+                        _canBrowse.value = true
+                        _uiState.value = UiState.Error(e.message.toString())
+                    }
                 }
             }
         }
@@ -115,7 +156,7 @@ class HomeViewModel @Inject constructor(
     fun getGenreUrl():String{
         var resultUrl = sources[index]
         when(index){
-            0 ->{
+            4 ->{
                 resultUrl+= "daftar-komik/page/1?sortby=update"
             }
             1 ->{
@@ -147,5 +188,21 @@ class HomeViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             updateComicSource.execute(index)
         }
+    }
+
+    fun getFromFirebase(){
+        var db = Firebase.firestore
+
+        val data = db.collection("source")
+        data.orderBy("id",Query.Direction.ASCENDING)
+            .addSnapshotListener { value, error ->
+                if(error != null){
+                    return@addSnapshotListener
+                }
+
+                if(value != null){
+                    _sourceFBState.value = value.toObjects()
+                }
+            }
     }
 }

@@ -10,7 +10,9 @@ import mapan.developer.macakomik.data.datasource.local.db.entity.ComicSaveEntity
  * Created By Mohammad Toriq on 09/01/2024
  */
 @Database(
-    entities = [ComicSaveEntity::class,ComicHistoryEntity::class],
+    entities = [ComicSaveEntity::class,ComicHistoryEntity::class
+//        , SourceEntity::class
+               ],
     version = 1,
     exportSchema = false
 )

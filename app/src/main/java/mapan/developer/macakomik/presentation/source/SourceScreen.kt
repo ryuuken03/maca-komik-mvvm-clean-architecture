@@ -2,40 +2,61 @@ package mapan.developer.macakomik.presentation.source
 
 import android.content.pm.PackageManager
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import mapan.developer.macakomik.R
+import mapan.developer.macakomik.data.datasource.remote.model.SourceFB
+import mapan.developer.macakomik.presentation.component.NoRippleInteractionSource
+import mapan.developer.macakomik.presentation.component.dialog.AlertDialogChangeSource
+import mapan.developer.macakomik.presentation.component.dialog.AlertDialogSource
 import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.component.toolbar.ToolbarCenter
+import mapan.developer.macakomik.presentation.component.toolbar.ToolbarDefault
+import mapan.developer.macakomik.presentation.home.HomeViewModel
 import mapan.developer.macakomik.ui.theme.Gray200Transparant
 import mapan.developer.macakomik.ui.theme.GrayDarker
 
@@ -45,338 +66,127 @@ import mapan.developer.macakomik.ui.theme.GrayDarker
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingScreen (
-    viewModel: SettingViewModel = hiltViewModel()
+fun SourceScreen (
+    viewModel: SourceViewModel = hiltViewModel(),
+    navigateBack: () -> Unit,
 ){
-    val context = LocalContext.current
-    val versionName by viewModel.versionName.collectAsStateWithLifecycle()
-    val stillBackup by viewModel.stillBackup.collectAsStateWithLifecycle()
-    val stillRestore by viewModel.stillRestore.collectAsStateWithLifecycle()
-    val messageToast by viewModel.messageToast.collectAsStateWithLifecycle()
-    if(!messageToast.equals("")){
-        Toast.makeText(context,messageToast, Toast.LENGTH_SHORT).show()
-        viewModel.resetMessageToast()
+    val sources by viewModel.sourceFBState.collectAsStateWithLifecycle()
+    val showDialog =  remember { mutableStateOf(false) }
+    val index =  remember { mutableStateOf(0) }
+    if(showDialog.value){
+        AlertDialogChangeSource(
+            showDialog = showDialog,
+            data = sources[index.value],
+            setAction = { data ->
+                viewModel.updateSource(data)
+            }
+        )
     }
     Scaffold(
         topBar ={
-            ToolbarCenter(
-                title = "Pengaturan",
-                fontSize = 16.sp
+            ToolbarDefault(
+                title = "Source Website",
+                withAds = false,
+                navigateBack = navigateBack
             )
         },
 
         content = {
             Box(
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.TopCenter,
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(GrayDarker)
+//                    .background(GrayDarker)
                     .padding(it)
             ) {
                 Column (
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(all = 5.dp),
-                    verticalArrangement = Arrangement.Top
+                    verticalArrangement = Arrangement.Top,
                 ){
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                top = 20.dp,
-                                start = 10.dp,
-                                bottom = 10.dp,
-                                end = 10.dp
-                            ),
-                        text = "Akun",
-                        fontSize = 14.sp,
-                        color = Color.LightGray,
-                    )
-                    Divider(
-                        color = Gray200Transparant,
-                        thickness = 0.dp,
-                        modifier = Modifier
-                            .padding(horizontal = 0.dp, vertical = 5.dp))
-
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        modifier = Modifier
-//                            .padding(all = 5.dp)
-//                            .fillMaxWidth(),
-//                        horizontalArrangement = Arrangement.SpaceBetween
-//                    ){
-//                        if(user.avatarUrl!=null){
-//                            AsyncImage(
-//                                model = user.avatarUrl!!,
-//                                contentDescription = null,
-//                                contentScale = ContentScale.Crop,
-//                                alignment = Alignment.Center,
-//                                modifier = Modifier
-//                                    .padding(5.dp)
-//                                    .clip(CircleShape)
-//                                    .size(35.dp)
-//                            )
-//                        }else{
-//                            var color = Color.LightGray
-//                            Text(
-//                                modifier = Modifier
-//                                    .weight(1f,false)
-//                                    .padding(15.dp)
-//                                    .drawBehind {
-//                                        drawCircle(
-//                                            color = color,
-//                                            radius = this.size.maxDimension
-//                                        )
-//                                    },
-//                                text = "A1",
-//                                text = user.username!!.substring(0,1),
-//                            )
-//                        }
-//                        Column (
-//                            modifier = Modifier.weight(2f)
-//                        ){
-//                            Text(
-//                                modifier = Modifier
-//                                    .padding(
-//                                        top = 5.dp,
-//                                        start = 5.dp,
-//                                        end = 5.dp
-//                                    ),
-////                            text = user.username!!,
-//                                text = "Akun Name",
-//                                fontSize = 14.sp,
-//                                fontWeight = FontWeight.Bold,
-//                                color = Color.White,
-//                            )
-//                            Text(
-//                                modifier = Modifier
-//                                    .padding(
-//                                        top = 5.dp,
-//                                        start = 5.dp,
-//                                        end = 5.dp
-//                                    ),
-//                            text = user.email!!,
-//                                text = "akun@mail.com",
-//                                fontSize = 13.sp,
-//                                fontWeight = FontWeight.SemiBold,
-//                                color = Color.White,
-//                            )
-//                        }
-//                        Row(
-//                            modifier = Modifier
-//                                .weight(1f,false)
-//                                .padding(
-//                                    top = 5.dp,
-//                                    start = 5.dp,
-//                                    bottom = 5.dp,
-//                                    end = 5.dp
-//                                )
-//                                .background(
-//                                    color = Color.Red,
-//                                    shape = RoundedCornerShape(4.dp),
-//                                )
-//                                .noRippleClickable {
-//
-//                                },
-//                            horizontalArrangement = Arrangement.Center,
-//                            verticalAlignment = Alignment.CenterVertically,
-//                        ){
-//                            Text(
-//                                modifier = Modifier
-//                                    .padding(
-//                                        top = 10.dp,
-//                                        start = 10.dp,
-//                                        bottom = 10.dp,
-//                                        end = 10.dp
-//                                    ),
-//                                text = "Logout",
-//                                fontSize = 13.sp,
-//                                fontWeight = FontWeight.SemiBold,
-//                                color = Color.White,
-//                            )
-//                        }
-//                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                top = 5.dp,
-                                start = 15.dp,
-                                bottom = 5.dp,
-                                end = 15.dp
-                            )
-                            .background(
-                                color = Color.White,
-                                shape = RoundedCornerShape(4.dp),
-                            )
-                            .noRippleClickable {
-
-                            },
-                        contentAlignment = Alignment.Center
-                    ){
-                        Row(
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically
+                    for(i in 0 .. sources.size-1){
+                        var title = sources[i].title!!
+                        var icon = R.drawable.ic_src_komikcast
+                        if(title.contains("komikcast",true)){
+                            icon = R.drawable.ic_src_komikcast
+                        }else if(title.contains("westmanga",true)){
+                            icon = R.drawable.ic_src_westmanga
+                        }else if(title.contains("ngomik",true)){
+                            icon = R.drawable.ic_src_ngomik
+                        }else if(title.contains("shinigami",true)){
+                            icon = R.drawable.ic_src_shinigami
+                        }else if(title.contains("komikindo",true)){
+                            icon = R.drawable.ic_src_komikindo
+                        }
+                        OutlinedButton(
+                            modifier = Modifier
+                                .padding(all = 5.dp),
+                            interactionSource = remember { NoRippleInteractionSource() },
+                            contentPadding = PaddingValues(),
+                            border = BorderStroke(1.dp, GrayDarker),
+                            shape = RoundedCornerShape(4),
+                            onClick = {
+                                index.value = i
+                                showDialog.value = true
+                            }
                         ){
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_google),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                alignment = Alignment.Center,
+                            Row (
                                 modifier = Modifier
-                                    .padding(
-                                        top = 10.dp,
-                                        start = 10.dp,
-                                        bottom = 10.dp,
-                                        end = 5.dp
+                                    .padding(5.dp)
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceAround
+                            ){
+                                Image(
+                                    modifier = Modifier
+                                        .weight(1f,true)
+                                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                                        .width(25.dp)
+                                        .height(25.dp),
+                                    painter = painterResource(icon),
+                                    contentDescription = "web",
+                                    alignment = Alignment.CenterStart
+                                )
+                                Row (
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .weight(5f,true),
+                                ){
+                                    Column(){
+                                        Text(
+                                            text = sources[i].title!!,
+                                            color = GrayDarker,
+                                            textAlign = TextAlign.Start
+                                        )
+                                        Text(
+                                            text = sources[i].url!!,
+                                            color = GrayDarker,
+                                            textAlign = TextAlign.Start
+                                        )
+                                    }
+                                    Image(
+                                        imageVector = Icons.Filled.Edit,
+                                        colorFilter = ColorFilter.tint(Color.DarkGray),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .width(20.dp)
+                                            .height(20.dp)
                                     )
-                                    .clip(CircleShape)
-                                    .size(20.dp)
-                            )
-                            Text(
-                                modifier = Modifier
-                                    .padding(
-                                        top = 10.dp,
-                                        start = 5.dp,
-                                        bottom = 10.dp,
-                                        end = 10.dp
-                                    ),
-                                text = "Login/Daftar",
-                                textAlign = TextAlign.Center,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.Black,
-                            )
-                        }
-                    }
-                    Divider(
-                        color = Gray200Transparant,
-                        thickness = 0.dp,
-                        modifier = Modifier
-                            .padding(horizontal = 0.dp, vertical = 5.dp))
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                top = 10.dp,
-                                start = 10.dp,
-                                bottom = 10.dp,
-                                end = 10.dp
-                            ),
-                        text = "Data",
-                        fontSize = 14.sp,
-                        color = Color.LightGray,
-                    )
-                    Divider(
-                        color = Gray200Transparant,
-                        thickness = 0.dp,
-                        modifier = Modifier
-                            .padding(horizontal = 0.dp, vertical = 5.dp))
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                top = 10.dp,
-                                start = 20.dp,
-                                bottom = 10.dp,
-                                end = 20.dp
-                            ).noRippleClickable {
-                                if(!stillBackup){
-//                                    viewModel.backupOffline()
-                                }else{
-                                    var message = context.getString(R.string.text_please_waiting)
-                                    Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
                                 }
-                            },
-                        text = "Backup Data",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
-                    )
-                    Divider(
-                        color = Gray200Transparant,
-                        thickness = 0.dp,
-                        modifier = Modifier
-                            .padding(horizontal = 0.dp, vertical = 5.dp))
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                top = 10.dp,
-                                start = 20.dp,
-                                bottom = 10.dp,
-                                end = 20.dp
-                            ).noRippleClickable {
-                                if(!stillRestore){
-//                                    viewModel.restoreOffline()
-                                }else{
-                                    var message = context.getString(R.string.text_please_waiting)
-                                    Toast.makeText(context,message, Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                        text = "Restore Data",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
-                    )
-                    Divider(
-                        color = Gray200Transparant,
-                        thickness = 0.dp,
-                        modifier = Modifier
-                            .padding(horizontal = 0.dp, vertical = 5.dp))
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                top = 10.dp,
-                                start = 10.dp,
-                                bottom = 10.dp,
-                                end = 10.dp
-                            ),
-                        text = "App",
-                        fontSize = 14.sp,
-                        color = Color.LightGray,
-                    )
-                    Divider(
-                        color = Gray200Transparant,
-                        thickness = 0.dp,
-                        modifier = Modifier
-                            .padding(horizontal = 0.dp, vertical = 5.dp))
-                    if(!versionName.equals("")){
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    top = 10.dp,
-                                    start = 20.dp,
-                                    bottom = 10.dp,
-                                    end = 20.dp
-                                ),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ){
-                            Text(
-                                text = "Version",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White,
-                                modifier = Modifier.weight(1f,false)
-                            )
-                            Text(
-                                text = versionName,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White,
-                                modifier = Modifier.weight(1f,false)
-                            )
+                            }
                         }
-                        Divider(
-                            color = Gray200Transparant,
-                            thickness = 0.dp,
-                            modifier = Modifier
-                                .padding(horizontal = 0.dp, vertical = 5.dp))
                     }
                 }
             }
         }
     )
 }
+
+//@Preview
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun prevScreen(){
+//    SourceScreen(
+//        navigateBack = {
+////            navController.navigateUp()
+//        },)
+//}

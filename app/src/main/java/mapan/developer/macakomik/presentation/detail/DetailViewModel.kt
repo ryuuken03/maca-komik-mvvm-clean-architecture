@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import mapan.developer.macakomik.data.UiState
 import mapan.developer.macakomik.data.datasource.local.db.entity.ComicSaveEntity
+import mapan.developer.macakomik.data.model.ComicChapter
 import mapan.developer.macakomik.data.model.ComicDetail
 import mapan.developer.macakomik.domain.usecase.bookmarks.DeleteUrlComicSave
 import mapan.developer.macakomik.domain.usecase.bookmarks.GetComicSave
@@ -33,10 +34,36 @@ class DetailViewModel @Inject constructor(
 
     var url = ""
     var imgSrc = ""
-    var bookmarkData : ComicSaveEntity?= null
+    var search = ""
+    var bookmarkDataSet : ComicSaveEntity?= null
     private val _isAddedBookmark = MutableStateFlow(false)
+    private val _bookmarkData:MutableStateFlow<ComicSaveEntity?> = MutableStateFlow(null)
     val isAddedBookmark = _isAddedBookmark.asStateFlow()
+    val bookmarkData = _bookmarkData.asStateFlow()
+    var listChapter = ArrayList<ComicChapter>()
 
+    fun searchChapter(s:String){
+        if(_uiState.value is UiState.Success){
+            this.search = s
+            var chapters = ArrayList<ComicChapter>()
+            listChapter.forEach {
+                var isAdd = false
+                if(s.equals("")){
+                    isAdd = true
+                }else{
+                    if(it.name!!.lowercase().contains(s.lowercase())){
+                        isAdd = true
+                    }
+                }
+                if(isAdd){
+                    chapters.add(it)
+                }
+            }
+            var detail = uiState.value.data
+            detail!!.list = chapters
+            _uiState.value = UiState.Success(detail)
+        }
+    }
     fun setLoading(){
         _uiState.value = UiState.Loading()
     }
@@ -55,6 +82,8 @@ class DetailViewModel @Inject constructor(
                         _uiState.value = UiState.Error(it.message.toString())
                     }
                     .collect { comicDetail ->
+                        listChapter.clear()
+                        listChapter.addAll(comicDetail.list!!)
                         setBookmark(comicDetail)
                         _uiState.value = UiState.Success(comicDetail)
                     }
@@ -71,7 +100,7 @@ class DetailViewModel @Inject constructor(
         save.title = detail.title
         save.genre = detail.genre
         save.type = detail.type
-        bookmarkData = save
+        bookmarkDataSet = save
     }
 
     fun checkBookmarks(){
@@ -82,6 +111,7 @@ class DetailViewModel @Inject constructor(
                 }
                 .collect{ comic->
                     if(comic != null){
+                        _bookmarkData.value = comic
                         _isAddedBookmark.value = true
                     }else{
                         _isAddedBookmark.value = false
@@ -94,17 +124,18 @@ class DetailViewModel @Inject constructor(
         CoroutineScope(Dispatchers.IO).launch {
             getComicSave.execute(url)
                 .catch {
-                    insertComicSave.execute(bookmarkData!!)
+                    insertComicSave.execute(bookmarkDataSet!!)
                     _isAddedBookmark.value = true
                 }
                 .collect{ comic->
                     if(comic != null){
                         deleteUrlComicSave.execute(url).apply {
-                            insertComicSave.execute(bookmarkData!!)
+                            insertComicSave.execute(bookmarkDataSet!!)
                         }
                     }else{
-                        insertComicSave.execute(bookmarkData!!)
+                        insertComicSave.execute(bookmarkDataSet!!)
                     }
+                    _bookmarkData.value = bookmarkDataSet
                     _isAddedBookmark.value = true
                 }
         }

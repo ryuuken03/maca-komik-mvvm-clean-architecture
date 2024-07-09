@@ -1,8 +1,10 @@
 package mapan.developer.macakomik.presentation.home.section
 
+import android.util.Log
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -41,11 +44,14 @@ import mapan.developer.macakomik.presentation.home.HomeViewModel
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.model.ComicFilter
 import mapan.developer.macakomik.data.model.ComicHome
+import mapan.developer.macakomik.presentation.component.AdmobBanner
 import mapan.developer.macakomik.presentation.component.ContentScrollUpButton
 import mapan.developer.macakomik.presentation.component.GenreComic
 import mapan.developer.macakomik.presentation.component.ThumbnailComic
 import mapan.developer.macakomik.presentation.component.button.OutlinedButtonPrimary
+import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.ui.theme.md_theme_light_primary
+import mapan.developer.macakomik.util.Constants
 import java.net.URLEncoder
 
 /***
@@ -57,9 +63,10 @@ fun HomeContent(
     modifier: Modifier,
     data: ComicHome,
     genres: ArrayList<ComicFilter>,
+    themes: ArrayList<ComicFilter>,
     viewModel: HomeViewModel,
     navigateToDetail: (String,String) -> Unit,
-    navigateToGenre: (Int) -> Unit,
+    navigateToGenre: (Int,Boolean) -> Unit,
     navigateToList: (Int,String) -> Unit,
 ) {
     val listGridState = rememberLazyGridState()
@@ -83,7 +90,7 @@ fun HomeContent(
         indexPosition = indexPosition.value,
         content = {
             LazyVerticalGrid(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxSize()
                     .nestedScroll(nestedScrollConnection),
                 state = listGridState,
@@ -92,6 +99,7 @@ fun HomeContent(
                     if (data != null) {
                         var isPopularEmpty = true
                         var isGenreEmpty = true
+                        var isThemeEmpty = true
                         var isListEmpty = true
                         if (data.popular != null) {
                             if (data.popular!!.size > 0) {
@@ -100,7 +108,7 @@ fun HomeContent(
                                     Text(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(horizontal = 5.dp, vertical = 10.dp),
+                                            .padding(start = 5.dp, end = 5.dp, bottom = 10.dp),
                                         text = "Populer Hari Ini",
                                         fontSize = 16.sp,
                                         color = Color.White,
@@ -148,16 +156,18 @@ fun HomeContent(
                                             R.array.source_website_title
                                         )[index]
                                     OutlinedButtonPrimary(
-                                        title = ("Proyek " + sourceTitle).uppercase(),
+                                        title = (if (index != 4) {"Proyek "} else {"Populer "} + sourceTitle).uppercase(),
                                         fontSize = 14.sp,
                                         onClick = {
                                             var projectPath = "project"
-                                            if (index == 0) {
+                                            if (index == 4) {
                                                 projectPath = "project-list"
                                             } else if (index == 1) {
                                                 projectPath = "project"
                                             } else if (index == 2) {
                                                 projectPath = "pj"
+                                            }else if (index == 0) {
+                                                projectPath = "komik-populer"
                                             }
                                             var pathEncode =
                                                 URLEncoder.encode(projectPath, "UTF-8")
@@ -165,6 +175,9 @@ fun HomeContent(
                                         }
                                     )
                                 }
+//                                item(span = { GridItemSpan(3) }){
+//                                    AdmobBanner(modifier = Modifier.fillMaxWidth())
+//                                }
                             }
                         }
                         if (genres.size > 0) {
@@ -180,7 +193,7 @@ fun HomeContent(
                                     fontWeight = FontWeight.Bold,
                                 )
                             }
-                            var countRowGenre = 3
+                            var countRowGenre = 2
                             items(
                                 count = countRowGenre, span = { GridItemSpan(3) }
                             ) { index ->
@@ -222,7 +235,77 @@ fun HomeContent(
                                     title = "Semua Genre".uppercase(),
                                     fontSize = 14.sp,
                                     onClick = {
-                                        navigateToGenre(viewModel.index)
+                                        navigateToGenre(viewModel.index,false)
+                                    }
+                                )
+                            }
+                        }
+                        if (themes.size > 0) {
+                            isThemeEmpty = false
+                            item(span = { GridItemSpan(3) }) {
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 5.dp, vertical = 10.dp),
+                                    text = "Tema Komik",
+                                    fontSize = 16.sp,
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                            var countRowTheme = 2
+                            items(
+                                count = countRowTheme, span = { GridItemSpan(3) }
+                            ) { index ->
+                                var first = index * 2
+                                var second = first + 1
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                ) {
+                                    var firstTheme = themes[first].name!!
+                                    var root = "tema/"
+                                    if(Constants.isContent(firstTheme)){
+                                        root = "konten/"
+                                    }
+                                    GenreComic(
+                                        modifier = Modifier
+                                            .weight(1f, false),
+                                        data = themes[first],
+                                        onClick = {
+                                            var index = viewModel.index
+                                            var path = root + firstTheme
+                                                .lowercase().replace(" ", "-")
+                                            var pathEncode = URLEncoder.encode(path, "UTF-8")
+                                            navigateToList(index, pathEncode)
+                                        }
+                                    )
+                                    var secondTheme = themes[second].name!!
+                                    var root2 = "tema/"
+                                    if(Constants.isContent(secondTheme)){
+                                        root2 = "konten/"
+                                    }
+
+                                    GenreComic(
+                                        modifier = Modifier
+                                            .weight(1f, false),
+                                        data = themes[second],
+                                        onClick = {
+                                            var index = viewModel.index
+                                            var path = root2 + secondTheme
+                                                .lowercase().replace(" ", "-")
+                                            var pathEncode = URLEncoder.encode(path, "UTF-8")
+                                            navigateToList(index, pathEncode)
+                                        }
+                                    )
+                                }
+                            }
+                            item(span = { GridItemSpan(3) }) {
+                                OutlinedButtonPrimary(
+                                    title = "Semua Tema".uppercase(),
+                                    fontSize = 14.sp,
+                                    onClick = {
+                                        navigateToGenre(viewModel.index,true)
                                     }
                                 )
                             }
@@ -231,19 +314,40 @@ fun HomeContent(
                             if (data.popular!!.size > 0) {
                                 isListEmpty = false
                                 item(span = { GridItemSpan(3) }) {
-                                    Text(
+                                    Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(horizontal = 5.dp, vertical = 10.dp),
-                                        text = "Komik Terbaru",
-                                        fontSize = 16.sp,
-                                        color = Color.White,
-                                        fontWeight = FontWeight.Bold,
-                                    )
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ){
+
+                                        Text(
+                                            modifier = Modifier,
+                                            text = "Komik Terbaru",
+                                            fontSize = 16.sp,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.Bold,
+                                        )
+                                        Text(
+                                            modifier = Modifier
+                                                .noRippleClickable {
+                                                    var index = viewModel.index
+                                                    var pathEncode = URLEncoder.encode("-", "UTF-8")
+                                                    navigateToList(index, pathEncode)
+                                                },
+                                            text = "Lainnya >>",
+                                            fontSize = 14.sp,
+                                            color = md_theme_light_primary,
+                                            fontWeight = FontWeight.Bold,
+                                        )
+                                    }
                                 }
-                                var count = 15
-                                if (data.list!!.size < count) {
-                                    count = data.list!!.size
+//                                var count = 9
+                                var count = data.list!!.size
+                                var dis = count % 3
+                                if(dis != 0){
+                                    count -= dis
                                 }
                                 items(count = count) { index ->
                                     var thumbnail = data.list!![index]
@@ -278,7 +382,7 @@ fun HomeContent(
                             }
                         }
 
-                        if (isPopularEmpty && isListEmpty && isGenreEmpty) {
+                        if (isPopularEmpty && isListEmpty && isGenreEmpty && isThemeEmpty) {
                             item(span = { GridItemSpan(3) }) {
                                 EmptyData(stringResource(R.string.text_data_not_found),false)
                             }

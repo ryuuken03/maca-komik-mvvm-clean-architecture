@@ -23,4 +23,6 @@ interface DatabaseRepository {
     suspend fun getSource() : Flow<Int>
     suspend fun backupDataDB(): Flow<Int>
     suspend fun restoreDataDB(restart:Boolean) : Flow<Int>
+//    suspend fun getListSourceFB() : Flow<MutableList<SourceEntity>>
+//    suspend fun insertSourceFB(source: SourceEntity)
 }

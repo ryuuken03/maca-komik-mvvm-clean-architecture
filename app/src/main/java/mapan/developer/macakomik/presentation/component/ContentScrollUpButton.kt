@@ -42,7 +42,7 @@ fun ContentScrollUpButton(
     val coroutineScope = rememberCoroutineScope()
     Box {
         content()
-        if(indexPosition == -1 || indexPosition > 1 ){
+        if(indexPosition == -1 || indexPosition > 0 ){
             Column(
                 modifier = modifier
                     .fillMaxSize(),

@@ -16,6 +16,7 @@ import mapan.developer.macakomik.data.model.ComicFilter
 import mapan.developer.macakomik.presentation.component.GenreComic
 import mapan.developer.macakomik.presentation.component.ThumbnailComic
 import mapan.developer.macakomik.presentation.genre.GenreViewModel
+import mapan.developer.macakomik.util.Constants
 import java.net.URLEncoder
 
 /***
@@ -25,6 +26,7 @@ import java.net.URLEncoder
 @Composable
 fun GenreContent(
     modifier: Modifier,
+    isTheme:Boolean = false,
     data: ArrayList<ComicFilter>,
     viewModel: GenreViewModel,
     navigateToList: (Int,String) -> Unit,
@@ -37,12 +39,19 @@ fun GenreContent(
             if (data.size > 0) {
                 items (count = data.size){ index ->
                     var genre = data[index]
+                    var path = "genres/"
+                    if(isTheme){
+                        path  = "tema/"
+                        if(Constants.isContent(genre.name!!)){
+                            path = "konten/"
+                        }
+                    }
                     GenreComic(
                         modifier = Modifier,
                         data = genre,
                         onClick = {
                             var index = viewModel.index
-                            var path = "genres/"+genre.name!!
+                            var path = path+genre.name!!
                                 .lowercase().replace(" ","-")
                             var pathEncode = URLEncoder.encode(path,"UTF-8")
                             navigateToList(index,pathEncode)
@@ -51,7 +60,7 @@ fun GenreContent(
                 }
             }else{
                 item(span = { GridItemSpan(2) }){
-                    EmptyData(stringResource(R.string.text_data_not_found))
+                    EmptyData(stringResource(R.string.text_data_not_found),false)
                 }
             }
         },

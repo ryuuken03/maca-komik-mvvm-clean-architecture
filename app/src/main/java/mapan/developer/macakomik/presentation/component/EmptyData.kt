@@ -26,17 +26,15 @@ import androidx.compose.ui.unit.dp
 fun EmptyData(message :String,outContent:Boolean = true) {
     var modifier = Modifier.fillMaxSize()
     if(outContent){
-        modifier.verticalScroll(rememberScrollState())
+        modifier = modifier.verticalScroll(rememberScrollState())
     }
     Column(
         modifier = modifier,
+        verticalArrangement = Arrangement.Center
     ) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(500.dp)
-//            .fillMaxHeight()
+            modifier = Modifier.fillMaxWidth().height(500.dp)
         ) {
             Text(
                 text = message,

@@ -24,18 +24,22 @@ sealed class GeneralScreen(val route: String) {
         fun sendData(index: Int,pathUrl:String) = "list_screen/$index/$pathUrl"
     }
 
-    object GenreScreen: GeneralScreen("genre_screen/{index}"){
-        fun sendData(index: Int) = "genre_screen/$index"
+    object GenreScreen: GeneralScreen("genre_screen/{index}/{isTheme}"){
+        fun sendData(index: Int,isTheme:Boolean = false) = "genre_screen/$index/$isTheme"
     }
 
-    object ReadScreen: GeneralScreen("read_screen/{title}/{image}/{chapter}/{url}/{urlDetail}/{fromDetail}"){
-        fun sendData(title: String,
-                     image: String,
-                     chapter: String,
+    object ReadScreen: GeneralScreen("read_screen/{image}/{url}/{urlDetail}/{fromDetail}"){
+        fun sendData(image: String,
                      url: String,
                      urlDetail: String,
                      fromDetail:Boolean = false) =
-            "read_screen/$title/$image/$chapter/$url/$urlDetail/$fromDetail"
+            "read_screen/$image/$url/$urlDetail/$fromDetail"
+    }
+    object SettingScreen: GeneralScreen("setting_screen"){
+        fun sendData() ="setting_screen"
+    }
+    object SourceScreen: GeneralScreen("source_screen"){
+        fun sendData() ="source_screen"
     }
 
 }

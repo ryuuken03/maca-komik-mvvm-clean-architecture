@@ -1,6 +1,9 @@
 <resources>
-    <string name="app_name">MACA Komik</string>
+<!--    <string name="app_name">MACA Komik</string>-->
+    <string name="app_name">MACA</string>
     <string name="app_name2">MACA</string>
+    <string name="client_id_admob">ca-app-pub-5812258268533837~6846817598</string>
+    <string name="banner_admob_id">ca-app-pub-5812258268533837/7207578545</string>
     <string name="menu_home">Home</string>
     <string name="menu_history">Riwayat</string>
     <string name="menu_bookmarks">Tandai</string>
@@ -13,25 +16,28 @@
     <string name="text_please_waiting">Tunggu Sebentar...</string>
 
     <string-array name="source_website_title">
-        <item>Komikcast</item>
+        <item>KomikIndo</item>
         <item>Westmanga</item>
         <item>Ngomik</item>
         <item>Shinigami</item>
+        <item>Komikcast</item>
     </string-array>
 
     <string-array name="source_website_url">
-        <item>https://komikcast.lol/</item>
+        <item>https://komikindo.tv/</item>
         <item>https://westmanga.fun/</item>
-        <item>https://ngomik.net/</item>
+        <item>https://ngomik.mom/</item>
         <item>https://shinigamitoon.com/</item>
+        <item>https://komikcast.cz/</item>
     </string-array>
 
     <string-array name="source_website_image_not_found">
         <!--        <item>https://komikcast.vip/wp-content/uploads/2023/01/kcdefaultcover-2-e1674095844879.png</item>-->
         <!--        <item>https://komikcast.vip/wp-content/uploads/2023/06/kclogo.png</item>-->
-        <item>https://komikcast.ch/wp-content/uploads/2023/06/kclogo.png</item>
-        <item>https://westmanga.org/wp-content/uploads/2021/01/LOGOxx-1.png</item>
+        <item>https://komikindo.tv/wp-content/uploads/2020/12/komikindo-e1704648943874.png</item>
+        <item>wp-content/uploads/2021/01/LOGOxx-1.png</item>
         <item>https://i2.wp.com/ngomik.net/wp-content/uploads/2021/02/ngomik1.png</item>
         <item>https://wuz.shinigami.id/wp-content/uploads/2022/03/20044501/11.png</item>
+        <item>wp-content/uploads/2023/06/kclogo.png</item>
     </string-array>
 </resources>

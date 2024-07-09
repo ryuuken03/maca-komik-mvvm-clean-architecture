@@ -14,8 +14,8 @@ android {
         applicationId = "mapan.developer.macakomik"
         minSdk = 24
         targetSdk = 33
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -24,7 +24,16 @@ android {
     }
 
     buildTypes {
+        debug {
+            isShrinkResources = false
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
         release {
+            isShrinkResources = false
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -57,6 +66,7 @@ dependencies {
     implementation(Deps.core)
     implementation(Deps.appcompat)
     implementation(Deps.androidMaterial)
+    implementation(Deps.coreSplashscreen)
     implementation(CoroutinesLifecycleScope.lifeCycleRuntime)
     implementation(CoroutinesLifecycleScope.lifeCycleRuntimeCompose)
     implementation(CoroutinesLifecycleScope.lifeCycleViewModel)
@@ -98,6 +108,8 @@ dependencies {
     implementation(Jsoup.jsoup)
     implementation(platform(FirebaseDEP.firebaseBom))
     implementation(FirebaseDEP.firestore)
+    implementation(Admob.admob)
+    implementation("com.zhkrb.cloudflare-scrape-android:scrape-webview:0.0.4")
 }
 // Allow references to generated code
 kapt {

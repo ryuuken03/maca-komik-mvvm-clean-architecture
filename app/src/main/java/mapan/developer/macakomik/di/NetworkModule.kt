@@ -5,8 +5,11 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import mapan.developer.macakomik.data.datasource.remote.GoogleSheetsApiService
 import mapan.developer.macakomik.data.datasource.remote.RequestInterceptor
+import mapan.developer.macakomik.data.datasource.remote.RequestInterceptorGoogleSheets
 import mapan.developer.macakomik.data.datasource.remote.ShinigamiApiService
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -23,21 +26,7 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideLoggingInterceptor(): HttpLoggingInterceptor {
-//        return if (BuildConfig.DEBUG) HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
-//        else HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.NONE)
         return HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
-    }
-
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(logging: HttpLoggingInterceptor): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(RequestInterceptor())
-            .addInterceptor(logging)
-            .connectTimeout(60,TimeUnit.SECONDS)
-            .readTimeout(60,TimeUnit.SECONDS)
-            .writeTimeout(60,TimeUnit.SECONDS)
-            .build()
     }
 
     @Provides
@@ -48,17 +37,38 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(converterFactory: GsonConverterFactory, okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
+    fun provideShinigamiApiService(converterFactory: GsonConverterFactory,logging: HttpLoggingInterceptor): ShinigamiApiService {
+        var okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(RequestInterceptor())
+            .addInterceptor(logging)
+            .connectTimeout(60,TimeUnit.SECONDS)
+            .readTimeout(60,TimeUnit.SECONDS)
+            .writeTimeout(60,TimeUnit.SECONDS)
+            .build()
+
+        var retrofit = Retrofit.Builder()
             .baseUrl(ShinigamiApiService.BASE_URL)
             .addConverterFactory(converterFactory)
             .client(okHttpClient)
             .build()
+        return retrofit.create(ShinigamiApiService::class.java)
     }
-
     @Provides
     @Singleton
-    fun provideShinigamiApiService(retrofit: Retrofit): ShinigamiApiService {
-        return retrofit.create(ShinigamiApiService::class.java)
+    fun provideGoogleSheetsApiService(converterFactory: GsonConverterFactory, logging: HttpLoggingInterceptor): GoogleSheetsApiService {
+        var okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(RequestInterceptorGoogleSheets  ())
+            .addInterceptor(logging)
+            .connectTimeout(60,TimeUnit.SECONDS)
+            .readTimeout(60,TimeUnit.SECONDS)
+            .writeTimeout(60,TimeUnit.SECONDS)
+            .build()
+
+        var retrofit = Retrofit.Builder()
+            .baseUrl(GoogleSheetsApiService.BASE_URL)
+            .addConverterFactory(converterFactory)
+            .client(okHttpClient)
+            .build()
+        return retrofit.create(GoogleSheetsApiService::class.java)
     }
 }

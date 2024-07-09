@@ -1,9 +1,12 @@
 package mapan.developer.macakomik.presentation.component.toolbar
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -65,6 +68,17 @@ fun ToolbarDetailRead (
             },
             actions = {
                 if(textPage!=null){
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "search",
+                        tint =  Color.Black,
+                        modifier = Modifier
+                            .width(20.dp)
+                            .height(20.dp)
+                            .noRippleClickable {
+                                onClickPage()
+                            },
+                    )
                     Text(
                         text = textPage,
                         fontSize = textPageFontSize!!,

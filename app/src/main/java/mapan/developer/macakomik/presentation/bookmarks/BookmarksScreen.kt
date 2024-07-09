@@ -28,6 +28,7 @@ import mapan.developer.macakomik.presentation.component.toolbar.ToolbarCenter
 import mapan.developer.macakomik.presentation.history.HistoryViewModel
 import mapan.developer.macakomik.presentation.history.section.HistoryContent
 import mapan.developer.macakomik.ui.theme.GrayDarker
+import mapan.developer.macakomik.util.Constants
 
 /***
  * Created By Mohammad Toriq on 12/01/2024
@@ -37,13 +38,26 @@ import mapan.developer.macakomik.ui.theme.GrayDarker
 fun BookmarksScreen (
     viewModel: BookmarksViewModel = hiltViewModel(),
     navigateToDetail: (String,String) -> Unit,
-    navigateToChapter: (String,String,String,String,String) -> Unit,
+    navigateToChapter: (String,String,String) -> Unit,
+    navigateToSetting: () -> Unit,
 ) {
+
+
     Scaffold(
         topBar ={
             ToolbarCenter(
                 title = "Daftar Ditandai",
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                actionIcons =
+                if(Constants.IS_PRODUCTION)
+                    listOf()
+                else
+                    listOf(R.drawable.baseline_settings_24),
+                actionClicks =
+                if(Constants.IS_PRODUCTION)
+                    listOf()
+                else
+                    listOf(navigateToSetting),
             )
         },
 

@@ -31,17 +31,17 @@ import mapan.developer.macakomik.ui.theme.GrayDarker
 @Composable
 fun GenreScreen(
     index:Int,
+    isTheme:Boolean = false,
     viewModel: GenreViewModel = hiltViewModel(),
     navigateBack: () -> Unit,
     navigateToList: (Int,String) -> Unit,
 ) {
-    viewModel.setInit(index)
+    viewModel.setInit(index,isTheme)
     Scaffold(
         topBar ={
             Surface (shadowElevation = 1.dp){
-
                 ToolbarDefault(
-                    title = "Genre " + stringArrayResource(id =
+                    title = if(isTheme){"Genre "} else {"Tema "} + stringArrayResource(id =
                                     R.array.source_website_title)[viewModel.index],
                     icon = viewModel.getIcon(),
                     navigateBack = navigateBack
@@ -79,6 +79,7 @@ fun GenreScreen(
                                         GenreContent(
                                             modifier = Modifier,
                                             data = uiState.data,
+                                            isTheme = isTheme,
                                             viewModel = viewModel,
                                             navigateToList = navigateToList
                                         )

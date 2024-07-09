@@ -1,6 +1,7 @@
 package mapan.developer.macakomik.presentation.component.dialog
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,15 +40,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import mapan.developer.macakomik.ui.theme.GrayDarker
 import mapan.developer.macakomik.R
+import mapan.developer.macakomik.data.datasource.remote.model.SourceFB
 import mapan.developer.macakomik.data.model.ComicFilter
 import mapan.developer.macakomik.presentation.component.NoRippleInteractionSource
 import mapan.developer.macakomik.presentation.component.dropdown.DropdownFliter
+import mapan.developer.macakomik.presentation.component.inputtextfield.InputText
+import mapan.developer.macakomik.presentation.component.inputtextfield.InputTextSearch
 import mapan.developer.macakomik.ui.theme.WhiteBackground
 import mapan.developer.macakomik.ui.theme.md_theme_light_primary
 
@@ -57,20 +62,13 @@ import mapan.developer.macakomik.ui.theme.md_theme_light_primary
 
 @ExperimentalMaterial3Api
 @Composable
-fun AlertDialogFilter(
+fun AlertDialogChangeSource(
     showDialog: MutableState<Boolean>,
-    genres : ArrayList<ComicFilter>,
-    types : ArrayList<ComicFilter>,
-    orderbys : ArrayList<ComicFilter>,
-    genresSelected : MutableState<List<Int>>,
-    typeSelected : MutableState<List<Int>>,
-    orderbySelected : MutableState<List<Int>>,
-    setAction: (String,String,String) -> Unit
+    data:SourceFB,
+    setAction: (SourceFB) -> Unit
 ) {
-//    val genresSelected = remember { mutableStateOf(listOf(-1)) }
-//    val typeSelected = remember { mutableStateOf(listOf(0)) }
-//    val orderbySelected = remember { mutableStateOf(listOf(2)) }
-
+    val title =  remember { mutableStateOf(data.title) }
+    val url =  remember { mutableStateOf(data.url) }
     Dialog(onDismissRequest = { showDialog.value = false }) {
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -86,7 +84,7 @@ fun AlertDialogFilter(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Filter "+ stringResource(id = R.string.app_name2),
+                            text = "Edit "+ data.title!!,
                             style = TextStyle(
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
@@ -105,35 +103,26 @@ fun AlertDialogFilter(
                     }
 
                     Spacer(modifier = Modifier.height(15.dp))
-                    var listGenre = ArrayList<String>()
-                    genres.forEach{
-                        listGenre.add(it.name!!)
-                    }
-                    var listType = ArrayList<String>()
-                    types.forEach{
-                        listType.add(it.name!!)
-                    }
-                    var listOrderBy = ArrayList<String>()
-                    orderbys.forEach{
-                        listOrderBy.add(it.name!!)
-                    }
-                    DropdownFliter(
-                        title = "Jenis Komik",
-                        listType,
-                        indexSelected = typeSelected,
+                    InputText(
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .background(
+                                color = Color.Transparent
+                            ),
+                        placeholder = "Masukkan Judul",
+                        currentText = title,
                     )
-                    DropdownFliter(
-                        title = "Urutkan Komik",
-                        listOrderBy,
-                        indexSelected = orderbySelected,
+                    Spacer(modifier = Modifier.height(10.dp))
+                    InputText(
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .background(
+                                color = Color.Transparent
+                            ),
+                        placeholder = "Masukkan Url",
+                        currentText = url,
                     )
-                    DropdownFliter(
-                        title = "Genre Komik",
-                        listGenre,
-                        indexSelected = genresSelected,
-                        isCheckBox = true,
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Row (
                         horizontalArrangement = Arrangement.End,
                         modifier = Modifier.fillMaxWidth()
@@ -152,26 +141,10 @@ fun AlertDialogFilter(
                         }
                         Button(
                             onClick = {
-                                var genre = ""
-                                var i = 0
-                                genresSelected.value.forEach {
-                                    if(it > -1){
-                                        genre+="genre%5B"+i.toString()+"%5D="+genres[it].value+"&"
-                                    }
-                                }
-                                var type = ""
-                                typeSelected.value.forEach {
-                                    if(it > -1){
-                                        type = types[it].value!!
-                                    }
-                                }
-                                var orderby = ""
-                                orderbySelected.value.forEach {
-                                    if(it > -1){
-                                        orderby = orderbys[it].value!!
-                                    }
-                                }
-                                setAction(type, orderby, genre)
+                                var update = data
+                                update.title = title.value
+                                update.url = url.value
+                                setAction(update)
                                 showDialog.value = false
                             },
                             shape = RoundedCornerShape(6.dp),
@@ -180,7 +153,7 @@ fun AlertDialogFilter(
                             modifier = Modifier
                                     .padding(5.dp),
                         ) {
-                            Text(text = "Filter", color = GrayDarker)
+                            Text(text = "Simpan", color = GrayDarker)
                         }
                     }
                 }

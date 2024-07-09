@@ -1,6 +1,6 @@
 package mapan.developer.macakomik.presentation.read.section
 
-import androidx.compose.foundation.ExperimentalFoundationApi
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -74,25 +74,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.ImageLoader
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import mapan.developer.macakomik.presentation.component.EmptyData
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.model.ComicChapterPageList
+import mapan.developer.macakomik.presentation.component.ImageError
 import mapan.developer.macakomik.presentation.component.ProgressLoading
 import mapan.developer.macakomik.presentation.component.noRippleClickable
 import mapan.developer.macakomik.presentation.component.noRippleCombileClickable
 import mapan.developer.macakomik.presentation.read.ReadViewModel
 import mapan.developer.macakomik.ui.theme.GrayDarker
 import mapan.developer.macakomik.ui.theme.md_theme_light_primary
+import okhttp3.OkHttpClient
 import java.net.URLEncoder
+import java.util.concurrent.TimeUnit
 
 /***
  * Created By Mohammad Toriq on 03/01/2024
@@ -143,453 +144,470 @@ fun ReadContent(
     val currentPage by viewModel.currentPage.collectAsStateWithLifecycle()
     val maxPage by viewModel.maxPage.collectAsStateWithLifecycle()
 
-Box{
-    LazyColumn(
-        state = listState,
-        userScrollEnabled  = !canZoom.value,
-        modifier = modifier
-            .nestedScroll(nestedScrollConnection)
-            .fillMaxSize(),
-        content = {
-            if (data != null) {
-                if (data.list != null) {
-                    if(data.list!!.size == 0){
-                        item{
-                            EmptyData(stringResource(R.string.text_data_not_found))
-                        }
-                    }else{
-                        items (count = data.list!!.size){ index ->
-                            var page = data.list!![index]
-                            val scale = remember { mutableStateOf(1f) }
-                            val offset = remember { mutableStateOf(Offset.Zero) }
-                            BoxWithConstraints(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            ){
-                                val state = rememberTransformableState{ zoomChange, panChange, rotation ->
-                                    val eWidth = (scale.value - 1) * constraints.maxWidth
-                                    val eHeight = (scale.value - 1) * constraints.maxHeight
-
-                                    val maxX = eWidth / 2
-                                    val maxY = eHeight / 2
-                                    offset.value = Offset(
-                                        x = (offset.value.x +panChange.x).coerceIn(-maxX,maxX),
-                                        y = (offset.value.y +panChange.y).coerceIn(-maxY,maxY)
-                                    )
-                                }
-                                if(!canZoom.value){
-                                    scale.value = 1f
-                                    offset.value = Offset.Zero
-                                }
-                                SubcomposeAsyncImage(
-                                    model = page.imgSrc,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    alignment = Alignment.Center,
+    Box{
+        LazyColumn(
+            state = listState,
+            userScrollEnabled  = !canZoom.value,
+            modifier = modifier
+                .nestedScroll(nestedScrollConnection)
+                .fillMaxSize(),
+            content = {
+                if (data != null) {
+                    if (data.list != null) {
+                        if(data.list!!.size == 0){
+                            item{
+                                EmptyData(stringResource(R.string.text_data_not_found),false)
+                            }
+                        }else{
+                            items (count = data.list!!.size){ index ->
+                                var page = data.list!![index]
+                                val scale = remember { mutableStateOf(1f) }
+                                val offset = remember { mutableStateOf(Offset.Zero) }
+                                BoxWithConstraints(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .graphicsLayer(
-                                            scaleX = scale.value,
-                                            scaleY = scale.value,
-                                            translationX = offset.value.x,
-                                            translationY = offset.value.y
-                                        )
-                                        .transformable(state, enabled = canZoom.value)
-                                        .noRippleCombileClickable(
-                                            onClick = {},
-                                            onDoubleClick = {
-                                                canZoom.value = !canZoom.value
-                                                if (canZoom.value) {
-                                                    scale.value = (scale.value * 2f)
-                                                    val eWidth =
-                                                        (scale.value - 1) * constraints.maxWidth
-                                                    val eHeight =
-                                                        (scale.value - 1) * constraints.maxHeight
+                                ){
+                                    val state = rememberTransformableState{ zoomChange, panChange, rotation ->
+                                        val eWidth = (scale.value - 1) * constraints.maxWidth
+                                        val eHeight = (scale.value - 1) * constraints.maxHeight
 
-                                                    val maxX = eWidth / 2
-                                                    val maxY = eHeight / 2
-                                                    offset.value = Offset(
-                                                        x = (offset.value.x).coerceIn(
-                                                            -maxX,
-                                                            maxX
-                                                        ),
-                                                        y = (offset.value.y).coerceIn(
-                                                            -maxY,
-                                                            maxY
+                                        val maxX = eWidth / 2
+                                        val maxY = eHeight / 2
+                                        offset.value = Offset(
+                                            x = (offset.value.x +panChange.x).coerceIn(-maxX,maxX),
+                                            y = (offset.value.y +panChange.y).coerceIn(-maxY,maxY)
+                                        )
+                                    }
+                                    if(!canZoom.value){
+                                        scale.value = 1f
+                                        offset.value = Offset.Zero
+                                    }
+                                    var retryHash by remember { mutableStateOf(0) }
+
+                                    var urlEncode = page.imgSrc!!
+                                    Log.d("OkCheck",urlEncode)
+                                    if(urlEncode.contains(" ")){
+                                        urlEncode = urlEncode.replace(" ","%20")
+                                    }
+                                    var url = urlEncode+"?refresh="+retryHash
+                                    var disableRetry = false
+    //                                if(url.contains("my.id/wp-content/img/")){
+                                    if(urlDetail.contains("komikcast")){
+                                        url = urlEncode
+                                        disableRetry = true
+                                    }
+
+                                    SubcomposeAsyncImage(
+                                        model = url,
+    //                                    model = painter,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        alignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .graphicsLayer(
+                                                scaleX = scale.value,
+                                                scaleY = scale.value,
+                                                translationX = offset.value.x,
+                                                translationY = offset.value.y
+                                            )
+                                            .transformable(state, enabled = canZoom.value)
+                                            .noRippleCombileClickable(
+                                                onClick = {},
+                                                onDoubleClick = {
+                                                    canZoom.value = !canZoom.value
+                                                    if (canZoom.value) {
+                                                        scale.value = (scale.value * 2f)
+                                                        val eWidth =
+                                                            (scale.value - 1) * constraints.maxWidth
+                                                        val eHeight =
+                                                            (scale.value - 1) * constraints.maxHeight
+
+                                                        val maxX = eWidth / 2
+                                                        val maxY = eHeight / 2
+                                                        offset.value = Offset(
+                                                            x = (offset.value.x).coerceIn(
+                                                                -maxX,
+                                                                maxX
+                                                            ),
+                                                            y = (offset.value.y).coerceIn(
+                                                                -maxY,
+                                                                maxY
+                                                            )
                                                         )
-                                                    )
+                                                    }
                                                 }
-                                            }
-                                        )
-                                )
-                                {
-                                    val state = painter.state
-                                    if (state is AsyncImagePainter.State.Loading) {
-                                        CircularProgressIndicator(
+                                            )
+                                    )
+                                    {
+                                        val state = painter.state
+                                        if (state is AsyncImagePainter.State.Loading) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(5.dp)
+                                                    .wrapContentWidth(Alignment.CenterHorizontally))
+                                        }else if (state is AsyncImagePainter.State.Error) {
+    //                                        Log.d("OkCheck Error",state.result.request.toString())
+                                            ImageError(
+                                                disableClick = disableRetry,
+                                                onClick = {
+                                                    retryHash++
+                                                })
+                                        }else if (state is AsyncImagePainter.State.Empty) {
+    //                                        Log.d("OkCheck Empty",state.toString())
+                                            ImageError(
+                                                disableClick = disableRetry,
+                                                onClick = {
+                                                retryHash++
+                                                })
+                                        }else{
+                                            SubcomposeAsyncImageContent()
+                                        }
+                                    }
+                                    Box (modifier = Modifier
+                                        .padding(5.dp)){
+                                        var color = md_theme_light_primary
+                                        Text(
                                             modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(5.dp)
-                                                .wrapContentWidth(Alignment.CenterHorizontally))
-                                    }else if (state is AsyncImagePainter.State.Error) {
-                                        Icon(
-                                            painter = painterResource(
-                                                id = R.drawable.baseline_hide_image_24),
-                                            contentDescription = null,
-                                            tint = Color.White)
-                                    }else if (state is AsyncImagePainter.State.Empty) {
-                                        Icon(
-                                            painter = painterResource(
-                                                id = R.drawable.baseline_hide_image_24),
-                                            contentDescription = null,
-                                            tint = Color.Gray
+                                                .padding(2.dp)
+                                                .drawBehind {
+                                                    drawCircle(
+                                                        color = color,
+                                                        radius = this.size.maxDimension
+                                                    )
+                                                },
+                                            text = (index+1).toString(),
+                                            fontSize = 8.sp
                                         )
-                                    }else{
-                                        SubcomposeAsyncImageContent()
                                     }
                                 }
-                                Box (modifier = Modifier
-                                    .padding(5.dp)){
-                                    var color = md_theme_light_primary
-                                    Text(
-                                        modifier = Modifier
-                                            .padding(2.dp)
-                                            .drawBehind {
-                                                drawCircle(
-                                                    color = color,
-                                                    radius = this.size.maxDimension
-                                                )
-                                            },
-                                        text = (index+1).toString(),
-                                        fontSize = 8.sp
-                                    )
-                                }
                             }
+                        }
+                    }else{
+                        item{
+                            EmptyData(stringResource(R.string.text_data_not_found),false)
                         }
                     }
                 }else{
                     item{
-                        EmptyData(stringResource(R.string.text_data_not_found))
+                        EmptyData(stringResource(R.string.text_data_not_found),false)
                     }
                 }
-            }else{
-                item{
-                    EmptyData(stringResource(R.string.text_data_not_found))
-                }
-            }
-        },
-    )
-    if (data != null) {
-        if (data.title != null) {
-            Column(
-                modifier = modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                if(showSearch.value){
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ){
-                        var text = ""
-                        if(!currentPage.equals("-")){
-                            if(currentPage.toInt() > 1){
-                                text = currentPage
-                            }
-                        }
-                        var search by remember { mutableStateOf(TextFieldValue(text)) }
-                        val customTextSelectionColors = TextSelectionColors(
-                            handleColor = Color.Gray,
-                            backgroundColor = Color.LightGray
-                        )
-                        CompositionLocalProvider (
-                            LocalTextSelectionColors provides customTextSelectionColors,
+            },
+        )
+        if (data != null) {
+            if (data.title != null) {
+                Column(
+                    modifier = modifier
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceBetween
+                ) {
+                    if(showSearch.value){
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
                         ){
-                            BasicTextField(
-                                value = search,
-                                onValueChange = { newText ->
-                                    try {
-                                        if(newText.text.toInt() > maxPage.toInt()){
-                                            var max by mutableStateOf(TextFieldValue(maxPage))
-                                            search = max
-                                        }else if(newText.text.toInt() < 1){
+                            var text = ""
+                            if(!currentPage.equals("-")){
+                                if(currentPage.toInt() > 1){
+                                    text = currentPage
+                                }
+                            }
+                            var search by remember { mutableStateOf(TextFieldValue(text)) }
+                            val customTextSelectionColors = TextSelectionColors(
+                                handleColor = Color.Gray,
+                                backgroundColor = Color.LightGray
+                            )
+                            CompositionLocalProvider (
+                                LocalTextSelectionColors provides customTextSelectionColors,
+                            ){
+                                BasicTextField(
+                                    value = search,
+                                    onValueChange = { newText ->
+                                        try {
+                                            if(newText.text.toInt() > maxPage.toInt()){
+                                                var max by mutableStateOf(TextFieldValue(maxPage))
+                                                search = max
+                                            }else if(newText.text.toInt() < 1){
+                                                var max by mutableStateOf(TextFieldValue(""))
+                                                search = max
+                                            }else{
+                                                search = newText
+                                            }
+                                        }catch (e:Exception){
                                             var max by mutableStateOf(TextFieldValue(""))
                                             search = max
-                                        }else{
-                                            search = newText
                                         }
-                                    }catch (e:Exception){
-                                        var max by mutableStateOf(TextFieldValue(""))
-                                        search = max
-                                    }
-                                },
-                                singleLine = true,
-                                modifier = Modifier
-                                    .background(
-                                        color = Color.White,
-                                        shape = RoundedCornerShape(6.dp)
+                                    },
+                                    singleLine = true,
+                                    modifier = Modifier
+                                        .background(
+                                            color = Color.White,
+                                            shape = RoundedCornerShape(6.dp)
+                                        ),
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Number,
+                                        imeAction = ImeAction.Search
                                     ),
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Number,
-                                    imeAction = ImeAction.Search
-                                ),
-                                keyboardActions = KeyboardActions(
-                                    onSearch = {
-                                        coroutineScope.launch {
-                                            listState.scrollToItem(index = search.text.toInt()-1)
-                                            viewModel.setCurrentPageText(search.text)
+                                    keyboardActions = KeyboardActions(
+                                        onSearch = {
+                                            coroutineScope.launch {
+                                                listState.scrollToItem(index = search.text.toInt()-1)
+                                                viewModel.setCurrentPageText(search.text)
+                                            }
+                                            showSearch.value = false
+                                            keyboardController?.hide()
                                         }
-                                        showSearch.value = false
-                                        keyboardController?.hide()
-                                    }
-                                ),
-                                decorationBox = { innerTextField ->
-                                    Box(
-                                        modifier = Modifier
-                                            .width(130.dp)
-                                            .border(
-                                                width = 1.dp,
-                                                color = Color.Black,
-                                                shape = RoundedCornerShape(6.dp)
-                                            )
-
-                                    ) {
-                                        Row(
+                                    ),
+                                    decorationBox = { innerTextField ->
+                                        Box(
                                             modifier = Modifier
                                                 .width(130.dp)
-                                                .padding(10.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.SpaceBetween
-                                        ) {
-                                            Icon(
-                                                modifier = Modifier,
-                                                imageVector = Icons.Default.Search,
-                                                contentDescription = "search",
-                                                tint =  Color.Black
-                                            )
-                                            Box(modifier = Modifier
-                                                .weight(1f)
-                                                .padding(horizontal = 5.dp)){
-                                                if(search.text.isEmpty()){
-                                                    Text(text = currentPage+"/"+maxPage,
-                                                        color = Color.Gray,
-                                                        fontSize = 14.sp,)
-                                                }
-                                                innerTextField()
-                                            }
-                                            if(search.text.length > 0){
-                                                Icon(
-                                                    imageVector = Icons.Default.Close,
-                                                    contentDescription = "closeIcon",
-                                                    modifier = Modifier
-                                                        .clickable {
-                                                            var reset by mutableStateOf(
-                                                                TextFieldValue("")
-                                                            )
-                                                            search = reset
-                                                            keyboardController?.hide()
-                                                        },
-                                                    tint = Color.Black
+                                                .border(
+                                                    width = 1.dp,
+                                                    color = Color.Black,
+                                                    shape = RoundedCornerShape(6.dp)
                                                 )
+
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .width(130.dp)
+                                                    .padding(10.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Icon(
+                                                    modifier = Modifier,
+                                                    imageVector = Icons.Default.Search,
+                                                    contentDescription = "search",
+                                                    tint =  Color.Black
+                                                )
+                                                Box(modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(horizontal = 5.dp)){
+                                                    if(search.text.isEmpty()){
+                                                        Text(text = currentPage+"/"+maxPage,
+                                                            color = Color.Gray,
+                                                            fontSize = 14.sp,)
+                                                    }
+                                                    innerTextField()
+                                                }
+                                                if(search.text.length > 0){
+                                                    Icon(
+                                                        imageVector = Icons.Default.Close,
+                                                        contentDescription = "closeIcon",
+                                                        modifier = Modifier
+                                                            .clickable {
+                                                                var reset by mutableStateOf(
+                                                                    TextFieldValue("")
+                                                                )
+                                                                search = reset
+                                                                keyboardController?.hide()
+                                                            },
+                                                        tint = Color.Black
+                                                    )
+                                                }
                                             }
                                         }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
+                    }else{
+                        Spacer(modifier = Modifier.height(10.dp))
                     }
-                }else{
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-                if(showInfo.value){
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(GrayDarker)
-                    ){
-                        Text(
+                    if(showInfo.value){
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(
-                                    top = 10.dp,
-                                    bottom = 0.dp,
-                                    start = 10.dp,
-                                    end = 10.dp
-                                )
-                                .fillMaxWidth(),
-                            text = data.title!!,
-                            fontSize = 16.sp,
-                            color = Color.White,
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Row (modifier = Modifier
-                            .padding(5.dp)
+                                .background(GrayDarker)
                         ){
-                            if(data.pagePrev == null){
-                                Spacer(modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f, false)
-                                )
-                            }else{
-                                Button(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(5.dp)
-                                        .weight(1f, false),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = md_theme_light_primary
-                                    ),
-                                    shape = RoundedCornerShape(10),
-                                    contentPadding = PaddingValues(),
-                                    onClick = {
-                                        var url = data.pagePrev!!
-                                        viewModel.changeUrl(url,"","")
-                                    }
-                                ) {
-                                    Text(
-                                        text = "Prev",
-                                        fontSize = 12.sp,
-                                        color = GrayDarker,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                            Button(
+                            Text(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(5.dp)
-                                    .weight(2f, false),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.White
-                                ),
-                                shape = RoundedCornerShape(10),
-                                contentPadding = PaddingValues(),
-                                onClick = {
-                                    if(fromDetail){
-                                        navigateBack()
-                                    }else{
-                                        var image = image
-                                        if(!image.equals("")){
-                                            image = URLEncoder.encode(image, "UTF-8")
+                                    .padding(
+                                        top = 10.dp,
+                                        bottom = 0.dp,
+                                        start = 10.dp,
+                                        end = 10.dp
+                                    )
+                                    .fillMaxWidth(),
+                                text = data.title!!,
+                                fontSize = 16.sp,
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Row (modifier = Modifier
+                                .padding(5.dp)
+                            ){
+                                if(data.pagePrev == null){
+                                    Spacer(modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f, false)
+                                    )
+                                }else{
+                                    Button(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(5.dp)
+                                            .weight(1f, false),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = md_theme_light_primary
+                                        ),
+                                        shape = RoundedCornerShape(10),
+                                        contentPadding = PaddingValues(),
+                                        onClick = {
+                                            var url = data.pagePrev!!
+                                            viewModel.changeUrl(url,"","")
                                         }
-                                        var url = URLEncoder.encode(urlDetail, "UTF-8")
-                                        navigateToDetail(image,url,true)
+                                    ) {
+                                        Text(
+                                            text = "Prev",
+                                            fontSize = 12.sp,
+                                            color = GrayDarker,
+                                            textAlign = TextAlign.Center
+                                        )
                                     }
                                 }
-                            ) {
-                                Text(
-                                    text = "Semua Chapter",
-                                    fontSize = 12.sp,
-                                    color = GrayDarker,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                            if(data.pageNext == null){
-                                Spacer(modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f, false)
-                                )
-                            }else{
                                 Button(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(5.dp)
-                                        .weight(1f, false),
+                                        .weight(2f, false),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = md_theme_light_primary
+                                        containerColor = Color.White
                                     ),
                                     shape = RoundedCornerShape(10),
                                     contentPadding = PaddingValues(),
                                     onClick = {
-                                        var url = data.pageNext!!
-                                        viewModel.changeUrl(url,"","")
+                                        if(fromDetail){
+                                            navigateBack()
+                                        }else{
+                                            var image = image
+                                            if(!image.equals("")){
+                                                image = URLEncoder.encode(image, "UTF-8")
+                                            }
+                                            var url = URLEncoder.encode(urlDetail, "UTF-8")
+                                            navigateToDetail(image,url,true)
+                                        }
                                     }
                                 ) {
                                     Text(
-                                        text = "Next",
+                                        text = "Semua Chapter",
                                         fontSize = 12.sp,
                                         color = GrayDarker,
                                         textAlign = TextAlign.Center
                                     )
+                                }
+                                if(data.pageNext == null){
+                                    Spacer(modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f, false)
+                                    )
+                                }else{
+                                    Button(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(5.dp)
+                                            .weight(1f, false),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = md_theme_light_primary
+                                        ),
+                                        shape = RoundedCornerShape(10),
+                                        contentPadding = PaddingValues(),
+                                        onClick = {
+                                            var url = data.pageNext!!
+                                            viewModel.changeUrl(url,"","")
+                                        }
+                                    ) {
+                                        Text(
+                                            text = "Next",
+                                            fontSize = 12.sp,
+                                            color = GrayDarker,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
-                }else{
-                    Row(
-                        modifier = Modifier
-                            .padding(horizontal = 10.dp, vertical = 0.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ){
-                        Column(
-                            modifier = Modifier,
-                            horizontalAlignment = Alignment.CenterHorizontally
+                    }else{
+                        Row(
+                            modifier = Modifier
+                                .padding(horizontal = 10.dp, vertical = 0.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
                         ){
-                            if(showButtonUp.value){
+                            Column(
+                                modifier = Modifier,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ){
+                                if(showButtonUp.value){
+                                    Box(
+                                        modifier = Modifier
+                                            .width(50.dp)
+                                            .height(50.dp)
+                                            .background(
+                                                color = md_theme_light_primary,
+                                                shape = RoundedCornerShape(100),
+                                            )
+                                            .noRippleClickable {
+                                                coroutineScope.launch {
+                                                    listState.scrollToItem(index = 0)
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center
+                                    ){
+                                        Icon(
+                                            imageVector = Icons.Default.KeyboardArrowUp,
+                                            contentDescription = "scrollUp",
+                                            tint = GrayDarker,
+                                            modifier = Modifier
+                                                .width(40.dp)
+                                                .height(40.dp)
+                                                .padding(5.dp),
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(20.dp))
                                 Box(
                                     modifier = Modifier
                                         .width(50.dp)
-                                        .height(50.dp)
-                                        .background(
-                                            color = md_theme_light_primary,
-                                            shape = RoundedCornerShape(100),
-                                        )
-                                        .noRippleClickable {
-                                            coroutineScope.launch {
-                                                listState.scrollToItem(index = 0)
-                                            }
-                                        },
+                                        .height(50.dp),
                                     contentAlignment = Alignment.Center
                                 ){
-                                    Icon(
-                                        imageVector = Icons.Default.KeyboardArrowUp,
-                                        contentDescription = "scrollUp",
-                                        tint = GrayDarker,
+                                    Box(
                                         modifier = Modifier
                                             .width(40.dp)
                                             .height(40.dp)
-                                            .padding(5.dp),
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(20.dp))
-                            Box(
-                                modifier = Modifier
-                                    .width(50.dp)
-                                    .height(50.dp),
-                                contentAlignment = Alignment.Center
-                            ){
-                                Box(
-                                    modifier = Modifier
-                                        .width(40.dp)
-                                        .height(40.dp)
-                                        .background(
-                                            color = md_theme_light_primary,
-                                            shape = RoundedCornerShape(4.dp),
+                                            .background(
+                                                color = md_theme_light_primary,
+                                                shape = RoundedCornerShape(4.dp),
+                                            )
+                                            .noRippleClickable {
+                                                showInfo.value = true
+                                            }
+                                        ,
+                                        contentAlignment = Alignment.Center
+                                    ){
+                                        Icon(
+                                            imageVector = Icons.Default.List,
+                                            contentDescription = "showInfo",
+                                            tint = GrayDarker,
+                                            modifier = Modifier.padding(5.dp)
                                         )
-                                        .noRippleClickable {
-                                            showInfo.value = true
-                                        }
-                                    ,
-                                    contentAlignment = Alignment.Center
-                                ){
-                                    Icon(
-                                        imageVector = Icons.Default.List,
-                                        contentDescription = "showInfo",
-                                        tint = GrayDarker,
-                                        modifier = Modifier.padding(5.dp)
-                                    )
+                                    }
                                 }
+
                             }
 
                         }
-
                     }
                 }
             }
         }
     }
-}
 }

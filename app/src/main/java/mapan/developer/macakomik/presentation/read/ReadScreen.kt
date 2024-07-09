@@ -50,9 +50,7 @@ import java.net.URLDecoder
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReadScreen(
-    title :String,
     image :String,
-    chapter :String,
     url :String,
     urlDetail :String,
     fromDetail :Boolean,

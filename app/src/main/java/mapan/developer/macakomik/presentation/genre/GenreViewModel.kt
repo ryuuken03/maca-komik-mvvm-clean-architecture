@@ -14,6 +14,7 @@ import mapan.developer.macakomik.data.UiState
 import mapan.developer.macakomik.R
 import mapan.developer.macakomik.data.model.ComicFilter
 import mapan.developer.macakomik.domain.usecase.genre.GetGenre
+import mapan.developer.macakomik.util.Constants
 import javax.inject.Inject
 
 /***
@@ -29,18 +30,18 @@ class GenreViewModel @Inject constructor(
     var sources = context.resources.getStringArray(R.array.source_website_url)
     var index = -1
     var url = ""
-//    var isInit = false
+    var isTheme = false
 
-    fun setInit(ind : Int){
-        index = ind
-        url = getGenreUrl()
+    fun setInit(ind : Int,isTheme :Boolean = false){
+        this.index = ind
+        this.isTheme = isTheme
+        this.url = getGenreUrl()
     }
-
 
     fun getGenreUrl():String{
         var resultUrl = sources[index]
         when(index){
-            0 ->{
+            4 ->{
                 resultUrl+= "daftar-komik/page/1?sortby=update"
             }
             1 ->{
@@ -59,10 +60,11 @@ class GenreViewModel @Inject constructor(
     fun getIcon() : Int{
         var icon = 0
         when(index){
-            0 -> { icon = R.drawable.ic_src_komikcast }
+            0 -> { icon = R.drawable.ic_src_komikindo }
             1 -> { icon = R.drawable.ic_src_westmanga }
             2 -> { icon = R.drawable.ic_src_ngomik }
             3 -> { icon = R.drawable.ic_src_shinigami }
+            4 -> { icon = R.drawable.ic_src_komikcast }
             else -> { icon = -1 }
         }
         return icon
@@ -70,24 +72,35 @@ class GenreViewModel @Inject constructor(
 
     fun resetData(){
         _uiState.value = UiState.Loading()
-//        getGenre()
     }
 
     fun getGenre(){
-//        if(!isInit){
-//            isInit = true
-//        }
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                getGenre.execute(url)
-                    .catch {
-                        _uiState.value = UiState.Error(it.message.toString())
+            if(isTheme){
+                var list = ArrayList<ComicFilter>()
+//                if(index == 4){
+                if(index == 0){
+                    var themes = Constants.getThemes(index)
+                    themes.forEach {
+                        var filter = ComicFilter()
+                        filter.name = it
+                        filter.value = it.lowercase().replace(" ","-")
+                        list.add(filter)
                     }
-                    .collect { response ->
-                        _uiState.value = UiState.Success(response)
-                    }
-            } catch (e: Exception) {
-                _uiState.value = UiState.Error(e.message.toString())
+                }
+                _uiState.value = UiState.Success(list)
+            }else{
+                try {
+                    getGenre.execute(url)
+                        .catch {
+                            _uiState.value = UiState.Error(it.message.toString())
+                        }
+                        .collect { response ->
+                            _uiState.value = UiState.Success(response)
+                        }
+                } catch (e: Exception) {
+                    _uiState.value = UiState.Error(e.message.toString())
+                }
             }
         }
     }
